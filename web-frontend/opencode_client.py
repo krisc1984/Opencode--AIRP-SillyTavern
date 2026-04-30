@@ -1,0 +1,100 @@
+"""OpenCode TUI injection client.
+
+OpenCode must be started with:
+    opencode --port 4096
+"""
+
+from __future__ import annotations
+
+import json
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+
+OC_URL = "http://127.0.0.1:4096"
+DEFAULT_TIMEOUT = 300
+
+
+def check_oc_alive() -> bool:
+    try:
+        post("/tui/clear-prompt", timeout=2)
+        return True
+    except Exception:
+        return False
+
+
+def inject_message(text: str) -> None:
+    post("/tui/clear-prompt", timeout=5)
+    time.sleep(0.1)
+    post("/tui/append-prompt", {"text": text}, timeout=10)
+    time.sleep(0.1)
+    post("/tui/submit-prompt", timeout=5)
+
+
+def send_message(user_text: str, cwd: Path, timeout: int = DEFAULT_TIMEOUT) -> str:
+    cwd = Path(cwd)
+    response_file = cwd / "web-frontend" / "web-response.txt"
+    response_file.unlink(missing_ok=True)
+    rp_log = current_rp_log(cwd)
+    previous_size = rp_log.stat().st_size if rp_log.exists() else 0
+    prompt = build_prompt(user_text)
+    inject_message(prompt)
+    started = time.time()
+    while time.time() - started <= timeout:
+        if response_file.exists():
+            text = response_file.read_text(encoding="utf-8", errors="replace").strip()
+            if text:
+                response_file.unlink(missing_ok=True)
+                return text
+        if rp_log.exists() and rp_log.stat().st_size > previous_size:
+            time.sleep(0.8)
+            return read_new_log_text(rp_log, previous_size)
+        time.sleep(1.2)
+    raise TimeoutError(f"等待 OpenCode 回复超时: {timeout}s")
+
+
+def build_prompt(user_text: str) -> str:
+    return (
+        "[Web 前端 AIRP 输入]\n"
+        "请严格按 AGENTS.md 的 OpenCode AIRP 规则处理这一轮。\n"
+        "你需要读取 current-card.txt，使用对应角色卡、memory、variables 和世界书索引。\n"
+        "请生成叙事回复；如有画面，保留 [img: english tags]；如需要更新变量，输出 <UpdateVariable> 块。\n"
+        "最后把完整回复写入 web-frontend/web-response.txt，并追加到当前角色卡 rp-log.txt。\n\n"
+        "用户输入：\n"
+        f"{user_text}\n"
+    )
+
+
+def current_rp_log(cwd: Path) -> Path:
+    current_file = cwd / "current-card.txt"
+    card = current_file.read_text(encoding="utf-8", errors="replace").strip() if current_file.exists() else ""
+    if not card:
+        card = "example-card"
+    path = cwd / "角色卡" / card / "rp-log.txt"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists():
+        path.write_text("", encoding="utf-8")
+    return path
+
+
+def read_new_log_text(path: Path, offset: int) -> str:
+    with path.open("r", encoding="utf-8", errors="replace") as handle:
+        handle.seek(offset)
+        text = handle.read().strip()
+    return text
+
+
+def post(endpoint: str, data: dict | None = None, timeout: int = 10) -> str:
+    req = urllib.request.Request(f"{OC_URL}{endpoint}", data=json.dumps(data or {}).encode("utf-8"), method="POST")
+    req.add_header("Content-Type", "application/json; charset=utf-8")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            return response.read().decode("utf-8", errors="replace")
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"无法连接 OpenCode TUI API {OC_URL}: {exc}") from exc
+
+
+if __name__ == "__main__":
+    print(json.dumps({"ok": check_oc_alive(), "url": OC_URL}, ensure_ascii=False))

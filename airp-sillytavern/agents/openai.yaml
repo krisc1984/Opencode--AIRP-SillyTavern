@@ -1,0 +1,4 @@
+interface:
+  display_name: "AIRP SillyTavern"
+  short_description: "AI roleplay with real SillyTavern runtime engine."
+  default_prompt: "Use $airp-sillytavern to start an AI roleplay session with preset, character card, persona, and world book."

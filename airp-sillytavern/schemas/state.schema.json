@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AIRP Session State",
+  "type": "object",
+  "required": ["turn", "char_name", "user_name"],
+  "properties": {
+    "turn": { "type": "integer", "minimum": 0 },
+    "created_at": { "type": "string" },
+    "updated_at": { "type": "string" },
+    "char_name": { "type": "string" },
+    "user_name": { "type": "string" },
+    "time_in_story": { "type": "string" },
+    "location": { "type": "string" },
+    "active_characters": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "mood": { "type": "string" },
+    "inventory": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "injuries": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "relationships": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "open_hooks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "secrets": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "important_facts": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "last_updated_turn": { "type": "integer" }
+  }
+}

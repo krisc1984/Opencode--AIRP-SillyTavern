@@ -1,0 +1,56 @@
+.env
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Node / OpenCode local dependencies
+node_modules/
+.opencode/node_modules/
+.opencode/package.json
+.opencode/package-lock.json
+.opencode/bun.lock
+
+# Web bridge runtime
+web-frontend/.pending
+web-frontend/web-input.txt
+web-frontend/web-response.txt
+web-frontend/web-needs-reply
+web-frontend/content.js
+web-frontend/content.js.tmp
+web-frontend/state.js
+web-frontend/state.js.tmp
+web-frontend/settings.json
+web-frontend/context-inspect.json
+web-frontend/context-inspect.json.tmp
+web-frontend/image_jobs.json
+web-frontend/image_jobs.json.tmp
+web-frontend/server.pid
+web-frontend/server-port.txt
+web-frontend/server-*.log
+
+# Per-card runtime data
+current-card.txt
+角色卡/*/chat_log.json
+角色卡/*/chat_log.json.tmp
+角色卡/*/variables.json
+角色卡/*/variables.json.tmp
+角色卡/*/img_generated.json
+角色卡/*/img_generated.json.tmp
+角色卡/*/rp-log.txt
+角色卡/*/session-state.md
+角色卡/*/openings.json
+角色卡/*/memory/
+角色卡/*/generated/
+角色卡/*/airp-session/
+
+# User cards are local by default; keep only the bundled example in Git.
+角色卡/*/card.json
+!角色卡/example-card/card.json
+角色卡/*/worldbooks/*.json
+!角色卡/example-card/worldbooks/main.json

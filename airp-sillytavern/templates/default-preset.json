@@ -1,0 +1,14 @@
+{
+  "main_prompt": "Write {{char}}'s next reply in a fictional chat between {{char}} and {{user}}. Write 1 reply only in internet RP style, italicize actions, and avoid quotation marks. Be proactive, creative, and drive the plot and conversation forward.",
+  "auxiliary_prompt": "",
+  "post_history_instructions": "",
+  "context_limit": 8192,
+  "max_tokens": 300,
+  "temperature": 1.0,
+  "top_p": 1.0,
+  "frequency_penalty": 0,
+  "presence_penalty": 0,
+  "scan_depth": 2,
+  "wi_budget": 512,
+  "stream": true
+}

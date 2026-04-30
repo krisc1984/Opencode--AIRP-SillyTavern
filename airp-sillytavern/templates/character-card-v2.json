@@ -1,0 +1,24 @@
+{
+  "spec": "chara_card_v2",
+  "spec_version": "2.0",
+  "data": {
+    "name": "Character Name",
+    "description": "Character description goes here. Include appearance, background, and key traits.",
+    "personality": "Core personality traits, communication style, quirks.",
+    "scenario": "The setting and situation where the roleplay takes place.",
+    "first_mes": "*Character's opening message with actions in italics.* Dialogue goes here without quotation marks.",
+    "mes_example": "<START>\n{{user}}: Example user message\n{{char}}: *Example character response with action.* Example dialogue",
+    "creator_notes": "Notes for other creators about this character.",
+    "system_prompt": "",
+    "post_history_instructions": "",
+    "alternate_greetings": [
+      "*An alternate opening scenario.* Different dialogue here.",
+      "*Another alternate opening.* Yet another approach."
+    ],
+    "character_book": null,
+    "tags": [],
+    "creator": "",
+    "character_version": "1.0",
+    "extensions": {}
+  }
+}
