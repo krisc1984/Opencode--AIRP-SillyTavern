@@ -1,0 +1,572 @@
+{
+  "relations": [
+    {
+      "id": "c35646002dd24e3183c9effe8118fc2b",
+      "name": "UI界面 :: {{user}}状态栏",
+      "relation": "(由AI根据剧情更新，用户也可手动编辑)",
+      "favor": 0,
+      "avatar": "U",
+      "source": "worldbook"
+    },
+    {
+      "id": "7c94c817593f4939a4ea63e7761eac5e",
+      "name": "UI界面 :: 在场其他人物状态栏",
+      "relation": "(由AI根据剧情更新)",
+      "favor": 0,
+      "avatar": "U",
+      "source": "worldbook"
+    },
+    {
+      "id": "77a5bc280bbe45df82bb15b3f6e4520f",
+      "name": "核心规则",
+      "relation": ": 交互与世界真实性",
+      "favor": 0,
+      "avatar": "核",
+      "source": "worldbook"
+    },
+    {
+      "id": "08c30b7aa30f4cc0af3b2a068aae35ef",
+      "name": "核心人物 :: {{user}}",
+      "relation": "**当前职业**：黑石资本董事长约翰·沃克的私人艺术顾问，负责在全球范围内搜购中国古玩。这份工作让他见多识广，并建立了“视金钱如粪土”（特指老板的钱）的超然金钱观。",
+      "favor": 0,
+      "avatar": "核",
+      "source": "worldbook"
+    },
+    {
+      "id": "530eafe6979a4d42a812f7cf33d3fc80",
+      "name": "核心设定",
+      "relation": ": 金瓶神气",
+      "favor": 0,
+      "avatar": "核",
+      "source": "worldbook"
+    },
+    {
+      "id": "8693617afea04640be050dad64381e68",
+      "name": "主要人物 :: 金晨",
+      "relation": "**对{{user}}的态度**：李尽欢的年轻有为、出手阔绰以及神秘背景早已引起了她的浓厚兴趣。她视你为必须牢牢抓住的“大鱼”。为了促成《金瓶梅》的天价拍卖，她不惜亲自担当主持，并精心打扮以吸引你的注意。她对你的挑逗半推半就，既享受被你欣赏的满足感，又因办公室的禁忌环境而感到刺激和紧张。在与你发生关系后，已经认你做“干弟弟”，关系更进一步，对你的情感也变得更加复杂和深厚。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "057c9d3dbea140a9a04873d7fd896dc3",
+      "name": "主要人物 :: 林志玲",
+      "relation": "**双重身份的诱惑**：作为大学老师（宋老师）和长辈（林姨），她对自己内心深处对李尽欢（{{user}}）产生的禁忌情感感到挣扎和刺激。这种身份上的束缚，反而让她在与你独处时，行为更加大胆和充满挑逗性。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "ce7c3b2648c44a49a18c1503b70a2443",
+      "name": "主要人物 :: 李小冉",
+      "relation": "**面容与气质**：皮肤白皙如瓷，一双眼睛深邃若井，顾盼生波。盘着高而松的发髻，穿着一身黑色丝质的职业套裙时，显得冷艳无比，全身的打扮处处精致，无懈可击。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "a9ec29cd13fb4560a1cffa1fc2e37475",
+      "name": "地点",
+      "relation": ": 悉尼唐人街佳士得拍卖场",
+      "favor": 0,
+      "avatar": "地",
+      "source": "worldbook"
+    },
+    {
+      "id": "83b17e61dba84d29a5b4a44fb4f7c64f",
+      "name": "次要人物",
+      "relation": ": 约翰·沃克",
+      "favor": 0,
+      "avatar": "次",
+      "source": "worldbook"
+    },
+    {
+      "id": "1ac2d4d6057f4d2b922f6452c1916a70",
+      "name": "背景人物",
+      "relation": ": 二叔公",
+      "favor": 0,
+      "avatar": "背",
+      "source": "worldbook"
+    },
+    {
+      "id": "15ed42afcc014731aa4e07e269073560",
+      "name": "背景设定",
+      "relation": ": 悉尼大学",
+      "favor": 0,
+      "avatar": "背",
+      "source": "worldbook"
+    },
+    {
+      "id": "aafa4e5d3e034404bf9353eb3394db94",
+      "name": "组织设定",
+      "relation": ": 黑石资本",
+      "favor": 0,
+      "avatar": "组",
+      "source": "worldbook"
+    },
+    {
+      "id": "1adad08690784fc28b6f2b4eae8c686c",
+      "name": "卷宗 :: 钱塘春潮",
+      "relation": "故事背景",
+      "favor": 0,
+      "avatar": "卷",
+      "source": "worldbook"
+    },
+    {
+      "id": "002acb4ab0e4451a95da1ef89be05235",
+      "name": "主要人物 :: 杨幂",
+      "relation": "**对{{user}}的态度**：她将自己的第一次毫无保留地献给了你，身心都已完全属于你。在你面前，她会展现出小女人的一面，既会害羞，又会主动索求你的爱抚。她是你回到钱塘后第一个正式确立关系的女人。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "178df71c7ad24889939c2b70fadb2628",
+      "name": "主要人物 :: 温碧霞",
+      "relation": "**单身母亲**：丈夫早逝（或关系名存实亡），独自一人将女儿杨幂抚养成人并培养成才。她外表坚强，内心却也渴望情感的慰藉。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "30159f760f794b30aae55ce6b5625058",
+      "name": "次要人物 :: 张钧蜜与唐嫣",
+      "relation": "**闺蜜互动**：她们之间的互动充满了女性间的亲昵和玩笑，会在更衣室里互相评价甚至抚摸对方的身体，关系极其亲密。",
+      "favor": 0,
+      "avatar": "次",
+      "source": "worldbook"
+    },
+    {
+      "id": "05d5298dbe4b42bf9a820b6d30cad037",
+      "name": "主要人物 :: 赵雅芝",
+      "relation": "**身材**：身材丰腴而匀称，保养极佳。穿着职业套裙时，胸部饱满高耸，腰肢纤细，美臀丰腴圆翘，一双修长玉腿在丝袜的包裹下性感迷人，充满了成熟女性的韵味和诱惑力。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "6f7e02e8d5c44d3c9f7cdeac353d5c3e",
+      "name": "主要人物 :: 李小璐",
+      "relation": "**面容与气质**：容貌美艳，身材丰润，曲线玲珑。大眼睛带着迷离的媚劲，红唇性感撩人。作为政府官员的秘书，她身上兼具职业女性的干练和成熟美妇的丰韵风情。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "c3babdb1f44549bf9647121ac22992d8",
+      "name": "主要人物 :: 冯提莫",
+      "relation": "**家庭关系**：与母亲赵雅芝关系亲密，但对父亲黄锦燊常年不顾家的行为感到不满。她敏锐地察觉到父母之间的问题，并对母亲的空虚寂寞抱有同情。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "15cc13743d6b4240a4d3077d9c83df7c",
+      "name": "次要人物 :: 吉娜",
+      "relation": "钱塘篇",
+      "favor": 0,
+      "avatar": "次",
+      "source": "worldbook"
+    },
+    {
+      "id": "59b04ae1bcc2477faa9117083db2481c",
+      "name": "主要人物 :: 陈乔恩",
+      "relation": "**婚姻不幸的豪门怨妇**：丈夫在外有小蜜，对她不闻不问，夫妻关系名存实亡。她内心极度空虚寂寞，对男女之事有着强烈的渴望，但又受到传统道德的束缚。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "e151883ed48b427ba9400ed73ccef5db",
+      "name": "主要人物 :: 倪妮",
+      "relation": "**身材**：身材丰满但绝不臃肿，胸部丰挺，臀部高翘，曲线诱人。穿着职业套装时，能完美展现其曼妙身材。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "405301d657be4ac284233bb75f1d5c8a",
+      "name": "次要人物 :: 熊黛林",
+      "relation": "**身材**：波涛汹涌，有容乃大。穿着浅灰色的职业套裙也无法掩盖其惊人的胸围，是公司里公认的巨乳美人。身材丰腴，曲线玲珑，充满了成熟肉感。",
+      "favor": 0,
+      "avatar": "次",
+      "source": "worldbook"
+    },
+    {
+      "id": "a2070b77ad07473d992eb2f888c1bd5f",
+      "name": "主要人物 :: 刘涛",
+      "relation": "**冷艳女强人**：事业心极强，能力出众，办案雷厉风行，是警队里说一不二的存在。她对工作极为投入，是她这个年龄段极少数能达到如此高位的女性。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "b9d7fa828849495d89ef0fceeb058ee3",
+      "name": "主要人物 :: 柳岩",
+      "relation": "**对{{user}}的态度**：在医院里与你偶然相遇，因你的绅士风度和独特气质而对你产生好感。作为刘涛的姐姐，她与你之间存在着一层特殊的关系。她内心的丧夫之痛和作为女人的空虚，使她对你这样充满活力的年轻男性难以抗拒。她是你攻略巨乳姐妹花的关键一环。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "c73a20199a654dc09859110b3e4ae94e",
+      "name": "主要人物 :: 高圆圆",
+      "relation": "**身材**：身材高挑，臀部丰腴圆翘，走路时极具韵味。胸部高挺，腰肢纤细。穿着职业套裙时，尽显其S型曲线，是个顶级的极品尤物。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "5aca85f9275e4aa8ad3df80546604a86",
+      "name": "次要人物 :: 郑爽",
+      "relation": "**身材**：身材丰满，小细腰大屁股，曲线诱人。穿着标准的OL职业套装时，胸前的乳房挺得高高的，臀部被黑色的西裤包裹得浑圆紧翘，极具性感魅力。",
+      "favor": 0,
+      "avatar": "次",
+      "source": "worldbook"
+    },
+    {
+      "id": "17c2656609e04dc99ae8b424e69635d9",
+      "name": "主要人物 :: 陈思成",
+      "relation": "黑石资本",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "fc263f3871e04e9baa99a6fd8d468d5c",
+      "name": "主要人物 :: 佟丽娅",
+      "relation": "**身材**：身材火爆，前凸后翘。穿着职业套装时，饱满的酥胸和挺翘的臀部构成完美的S型曲线，充满了办公室OL的制服诱惑。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "8f7c98347b1247248fa8a00c71dda052",
+      "name": "主要人物 :: 周慧敏",
+      "relation": "**新婚燕尔，内心空虚**：虽然刚刚结婚，但与丈夫方俊的关系似乎并不和谐。她对平淡的婚姻生活感到不满，内心渴望着激情与真正的征服。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "9e357654aab343e18e37e79969a380be",
+      "name": "主要人物 :: 关晓彤",
+      "relation": "**身材**：身材高挑，发育良好。穿着职业套装时（在酒吧打工），有一种超越年龄的成熟诱惑。身体充满了青春的活力和紧致感。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "2afcc2fb8c1747fa8e03afb83b0e603f",
+      "name": "主要人物 :: 张雨绮",
+      "relation": "**婚姻不幸，内心要强**：丈夫王全安是个一门心思往上爬的官迷，对家庭不管不问，夫妻关系名存实亡。她独自一人支撑着这个家，内心要强，不愿轻易向外人展示自己的脆弱。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "64b77879c3a84cf5adb471fac0e2974d",
+      "name": "物品",
+      "relation": ": 奥迪A8",
+      "favor": 0,
+      "avatar": "物",
+      "source": "worldbook"
+    },
+    {
+      "id": "bb80f424cabc49e4bfec933f7e657c80",
+      "name": "次要人物 :: 刘诗诗",
+      "relation": "**面容与气质**：妆容淡雅，气质温婉。穿着精致的职业套装，举手投足间都透露出专业的素养和成熟女性的魅力。",
+      "favor": 0,
+      "avatar": "次",
+      "source": "worldbook"
+    },
+    {
+      "id": "f691940d67734a77b44c791e72f20ded",
+      "name": "主要人物 :: 杨颖",
+      "relation": "**身材**：典型的OL极品身材，胸部丰满坚挺，腰肢纤细，臀部圆润挺翘。穿着职业套裙时，能完美地勾勒出她那令人血脉贲张的身体曲线，充满了制服诱惑。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "f9964c3082a448b7acb3fd956e4582ff",
+      "name": "龙套人物",
+      "relation": ": 金晨的闺蜜",
+      "favor": 0,
+      "avatar": "龙",
+      "source": "worldbook"
+    },
+    {
+      "id": "93eb5e2e9fd347bfaa8205112e2a15fa",
+      "name": "主要人物",
+      "relation": "**对{{user}}的态度**：最初，她将你视为外甥女的男朋友，一个可以托付的晚辈。但在你帮她解决了女儿关晓彤的麻烦后，她对你充满了感激和依赖。在荒岛求生的极端环境下，你成了她唯一的依靠，这种依赖感迅速转化为夹杂着禁忌色彩的爱慕。她是你用“恩情”和“关怀”攻破心防的典型，一旦被你征服，她将展现出火山般的热情和忠诚，甚至愿意为你做任何事，包括默许你与她女儿的特殊关系。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "b3c1eb7758084dc583126393d769906e",
+      "name": "分类",
+      "relation": ": 人物类型",
+      "favor": 0,
+      "avatar": "分",
+      "source": "worldbook"
+    },
+    {
+      "id": "2e1f2b5a48174da18d03452af11059dc",
+      "name": "Play Style",
+      "relation": "**双重禁忌**：同时与母亲和女儿发生关系，带来了母女乱伦和NTR（如果母亲有丈夫）的双重禁忌刺激感。",
+      "favor": 0,
+      "avatar": "P",
+      "source": "worldbook"
+    },
+    {
+      "id": "4c72ef5817ff4f6ba62c02ecf7b936e2",
+      "name": "Event",
+      "relation": "**环境与身份的反差**：在庄重、严肃的办公场所进行最原始、最激烈的性爱，这种巨大的反差感是其核心魅力。平日里端庄干练的OL们，在你的挑逗下，会变成淫荡风骚的荡妇。",
+      "favor": 0,
+      "avatar": "E",
+      "source": "worldbook"
+    },
+    {
+      "id": "6c5f57d0ec8d4fbca3ed74ae70d08ffd",
+      "name": "心境",
+      "relation": ": 主角心境",
+      "favor": 0,
+      "avatar": "心",
+      "source": "worldbook"
+    },
+    {
+      "id": "1a5ea8367ab14d9eae00eaae6494d6f1",
+      "name": "地点 :: 故事起点",
+      "relation": "悉尼",
+      "favor": 0,
+      "avatar": "地",
+      "source": "worldbook"
+    },
+    {
+      "id": "c9d0ff5427fe461781bad35403ca4035",
+      "name": "关系设定",
+      "relation": "**公众的掩护**：这个“干亲”关系，为你们之间频繁的接触和亲密的举动提供了完美的掩护。在不知情的外人看来，你们是亲密无间的长辈与晚辈。",
+      "favor": 0,
+      "avatar": "关",
+      "source": "worldbook"
+    },
+    {
+      "id": "1bd655b3e1104d718f699a105a76b3da",
+      "name": "龙套人物 :: 唐嫣",
+      "relation": "小说原文角色占位",
+      "favor": 0,
+      "avatar": "龙",
+      "source": "worldbook"
+    },
+    {
+      "id": "ef108fc766b84cd6bafc9a67edfec740",
+      "name": "物品/服装",
+      "relation": ": 黑色丝袜",
+      "favor": 0,
+      "avatar": "物",
+      "source": "worldbook"
+    },
+    {
+      "id": "757c87c0a41a417eb72c78d1248f54e9",
+      "name": "感官细节",
+      "relation": ": 体香",
+      "favor": 0,
+      "avatar": "感",
+      "source": "worldbook"
+    },
+    {
+      "id": "1af2230c6c5940b9aa276f21a4a99735",
+      "name": "主要人物 :: 宋素雅",
+      "relation": "**身材**：身材高挑，臀部丰腴圆翘，走路时极具韵味。胸部高挺，腰肢纤细。穿着职业套裙时，尽显其S型曲线，是个顶级的极品尤物。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "ff564daaeb634aeb9d772304744a8927",
+      "name": "技能/能力",
+      "relation": ": 按摩神技",
+      "favor": 0,
+      "avatar": "技",
+      "source": "worldbook"
+    },
+    {
+      "id": "acd6c6649bb14d1d91117830403d98f9",
+      "name": "事件",
+      "relation": "**权力与征服**：作为公司高管，将平日里端庄干练的女同事、女秘书甚至女上司（林志玲）压在办公桌上或会议室里肆意挞伐，这种权力倒转和身份反差带来了极大的征服快感。",
+      "favor": 0,
+      "avatar": "事",
+      "source": "worldbook"
+    },
+    {
+      "id": "43f7ba590a274cb4bc1dde776932c3d3",
+      "name": "事件 :: 母女丼",
+      "relation": "赵雅芝 & 冯提莫",
+      "favor": 0,
+      "avatar": "事",
+      "source": "worldbook"
+    },
+    {
+      "id": "8fe4e6ba37e145ff87488f69699fb271",
+      "name": "事件 :: 姐妹丼",
+      "relation": "**关系的调和**：赵雅芝和周慧敏之间存在着竞争关系。你需要运用智慧和魅力，让她们放下对彼此的成见，共同侍奉你。这个过程本身就充满了挑战和调教的乐趣。",
+      "favor": 0,
+      "avatar": "事",
+      "source": "worldbook"
+    },
+    {
+      "id": "b33a0b03f7c34573948013772d4058e7",
+      "name": "事件 :: 表姐妹丼",
+      "relation": "**竞争与挑衅**：关晓彤可能会出于叛逆心理，故意在你和杨幂面前表现得更加大胆和风骚，以此来挑衅表姐。而杨幂则会以“正牌女友”的身份，对关晓彤进行“管教”和“示范”。",
+      "favor": 0,
+      "avatar": "事",
+      "source": "worldbook"
+    },
+    {
+      "id": "7862fb4aea4e46a380fe13914f7001ee",
+      "name": "行为/事件",
+      "relation": "**对女性角色**：在半昏迷状态下，她会本能地感受到你口中渡来的气息和唇舌的触碰。这种在危机时刻发生的亲密接触，会在她心中留下极为深刻的、难以磨灭的印象，成为日后情感发展的催化剂。",
+      "favor": 0,
+      "avatar": "行",
+      "source": "worldbook"
+    },
+    {
+      "id": "7bf13697cfa142a89779c5878b57ed91",
+      "name": "生物",
+      "relation": ": 溶洞内的未知生物",
+      "favor": 0,
+      "avatar": "生",
+      "source": "worldbook"
+    },
+    {
+      "id": "2a2d0ea497c2414794c225d795b91604",
+      "name": "能力/玩法",
+      "relation": ": 双修",
+      "favor": 0,
+      "avatar": "能",
+      "source": "worldbook"
+    },
+    {
+      "id": "4e8001c38456486eacfd495afedcacae",
+      "name": "能力/技巧",
+      "relation": ": 性爱技巧",
+      "favor": 0,
+      "avatar": "能",
+      "source": "worldbook"
+    },
+    {
+      "id": "27ef1a0a5a2c4613af7c192775818ea3",
+      "name": "环境细节",
+      "relation": ": 欢爱后的痕迹",
+      "favor": 0,
+      "avatar": "环",
+      "source": "worldbook"
+    },
+    {
+      "id": "7cf464dffe60455ca741b09c60067525",
+      "name": "Play Style :: 制服诱惑",
+      "relation": "**身份与行为的巨大反差**：警服是权力、正义和禁欲的象征。看着代表国家公权力的冷艳女警官，在你面前褪去庄严的制服，或直接穿着这身衣服在你胯下婉转承欢，这种身份与行为的巨大反差会带来极致的征服快感。",
+      "favor": 0,
+      "avatar": "P",
+      "source": "worldbook"
+    },
+    {
+      "id": "19204da20ef040cc831f87f436ffbfae",
+      "name": "突发事件",
+      "relation": ": 意外车祸",
+      "favor": 0,
+      "avatar": "突",
+      "source": "worldbook"
+    },
+    {
+      "id": "f62e086910214b3f94136bd81fc99405",
+      "name": "物品/事件",
+      "relation": ": 电影《初恋无限》",
+      "favor": 0,
+      "avatar": "物",
+      "source": "worldbook"
+    },
+    {
+      "id": "eb3a823c3f75478c97e98f8e980af9d2",
+      "name": "俚语/概念",
+      "relation": ": 炮德",
+      "favor": 0,
+      "avatar": "俚",
+      "source": "worldbook"
+    },
+    {
+      "id": "e81082c53cb54982b4c05164495414aa",
+      "name": "主要人物 :: 章子怡",
+      "relation": "**性取向**：她是一个双性恋者，与周迅维持着长期的同性伴侣关系。但她内心深处，依然渴望被一个足够强大的男性所征服。她的身体对男性的刺激反应极为敏感。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "0e9e049d02aa4698831614dfce3380a4",
+      "name": "主要人物 :: 周迅",
+      "relation": "**对{{user}}的态度**：她将你视为一个入侵者，一个试图破坏她和章子怡之间完美关系的“敌人”。她对你充满了敌意和警惕。然而，在你用绝对的力量征服了章子怡之后，她会出于对章子怡的爱和“保护”，而被迫接受你的存在。你将通过一场特殊的、充满挑战的“治疗”，将她从一个纯粹的蕾丝边，“掰直”成一个同样离不开你的女人。征服她的过程，充满了将“不可能”变为“可能”的巨大成就感。",
+      "favor": 0,
+      "avatar": "主",
+      "source": "worldbook"
+    },
+    {
+      "id": "2c087ebb90124cb683781da276f1450b",
+      "name": "能力",
+      "relation": ": 金瓶神气的应用",
+      "favor": 0,
+      "avatar": "能",
+      "source": "worldbook"
+    },
+    {
+      "id": "2a63ffe40b8e46809564d983966c2f34",
+      "name": "环境设定",
+      "relation": ": 溶洞的秘密",
+      "favor": 0,
+      "avatar": "环",
+      "source": "worldbook"
+    },
+    {
+      "id": "051f42676adf41b5829adf2ebc4c5d58",
+      "name": "Play Style :: 母乳Play",
+      "relation": "**吸食乳汁**：你可以像婴儿一样，直接吸吮柳岩的乳头，品尝她甘甜、温热的乳汁。这个行为充满了母性的慈爱和禁忌的乱伦感（如果你将她视为类似母亲的角色），能给她带来极大的心理和生理刺激。",
+      "favor": 0,
+      "avatar": "P",
+      "source": "worldbook"
+    },
+    {
+      "id": "cc34285903bd442799eb99c1de48d714",
+      "name": "物品/概念",
+      "relation": ": 橡胶棒子",
+      "favor": 0,
+      "avatar": "物",
+      "source": "worldbook"
+    },
+    {
+      "id": "fd85b55cbb1e4b289ad5c1a09b8c6e1c",
+      "name": "事件 :: 巨乳姐妹花双飞",
+      "relation": "**坦白局**：这个事件的开启，需要你向她们姐妹二人“坦白”你与她们各自的关系。这个过程充满了戏剧性，姐姐的震惊和妹妹的醋意将交织在一起。",
+      "favor": 0,
+      "avatar": "事",
+      "source": "worldbook"
+    },
+    {
+      "id": "a513a13fe79d40c8988482dec05accd2",
+      "name": "习惯/行为",
+      "relation": "**刘涛的习惯**：身为刑警队长，刘涛白天的工作压力极大，神经时刻紧绷。裸睡是她释放压力、追求身体绝对自由的一种方式。这也为你夜袭她提供了极大的便利。",
+      "favor": 0,
+      "avatar": "习",
+      "source": "worldbook"
+    },
+    {
+      "id": "56fb14cfd19b4116bc9cf7e07802e438",
+      "name": "状态",
+      "relation": ": 醉酒",
+      "favor": 0,
+      "avatar": "状",
+      "source": "worldbook"
+    }
+  ]
+}

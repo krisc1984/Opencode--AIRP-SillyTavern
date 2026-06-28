@@ -87,10 +87,30 @@ def build_prompt(user_text: str) -> str:
                 header += (
                     "[人脉分析]\n"
                     f"{relation_prompt}\n"
-                    "如需输出新人脉，请在回复末尾加入 <RelationSuggestions>[\"角色名\", ...]</RelationSuggestions> 块。\n\n"
+                    "如需输出新人脉，请在回复末尾加入 <RelationSuggestions>[\"角色名\", ...]</RelationSuggestions> 块。\n"
+                    "也可以输出更详细的 JSON：<RelationSuggestions>[{\"name\":\"张三\",\"relation\":\"盟友\",\"desc\":\"描述\",\"favor\":0}, ...]</RelationSuggestions>\n\n"
                 )
+            user_name = (settings.get("userName") or "").strip()
+            user_bio = (settings.get("userBio") or "").strip()
+            if user_name or user_bio:
+                header += "[用户信息]\n"
+                if user_name:
+                    header += f"用户名：{user_name}\n"
+                if user_bio:
+                    header += f"用户简介：{user_bio}\n"
+                header += "\n"
     except Exception:
         pass
+
+    # Sidebar structured blocks prompt
+    header += (
+        "[侧边栏数据]\n"
+        "如需更新右侧目标/关键事件/资产，请在回复末尾加入对应 JSON 块：\n"
+        "<Goals>[{\"id\":\"g1\",\"title\":\"目标名\",\"progress\":0-100}]</Goals>\n"
+        "<Events>[{\"round\":1,\"title\":\"事件名\",\"desc\":\"描述\"}]</Events>\n"
+        "<Assets>[{\"id\":\"a1\",\"icon\":\"📦\",\"name\":\"物品名\",\"desc\":\"描述\"}]</Assets>\n"
+        "资产总量上限通过 Assets 块中的 totalCapacity 字段指定，如 {\"items\":[...],\"totalCapacity\":50}。\n\n"
+    )
     
     header += "用户输入：\n"
     prompt = f"{header}{user_text}\n"

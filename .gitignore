@@ -58,6 +58,17 @@ current-card.txt
 # Local user cards directory
 cards/
 
+# Generated runtime artifacts
+generated/
+
 # Windows reserved names / junk
 nul
 web-frontend/nul
+
+# Local scripts and debug logs
+start.cmd
+web-frontend/handle_presets_debug.log
+web-frontend/preset-injection.log
+web-frontend/server_debug.log
+web-frontend/server_debug.txt
+web-frontend/test-import.cmd

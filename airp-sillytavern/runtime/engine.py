@@ -85,6 +85,24 @@ def do_intake(sources: list[str], session_dir: str = "session") -> dict:
     if not result["worldbook"]:
         result["worldbook"] = {"entries": []}
 
+    # Merge web frontend user profile into persona so {{user}} reflects settings
+    try:
+        settings_path = Path.cwd() / "web-frontend" / "settings.json"
+        if not settings_path.exists():
+            settings_path = Path(__file__).resolve().parent.parent.parent / "web-frontend" / "settings.json"
+        if settings_path.exists():
+            settings = json.loads(settings_path.read_text(encoding="utf-8", errors="replace"))
+            user_name = (settings.get("userName") or "").strip()
+            user_bio = settings.get("userBio")
+            if isinstance(user_bio, str):
+                user_bio = user_bio.strip()
+            if user_name:
+                result["persona"]["name"] = user_name
+            if user_bio is not None:
+                result["persona"]["description"] = user_bio
+    except Exception:
+        pass
+
     # Save to session
     for key in ("preset", "character", "persona", "worldbook"):
         if result[key]:
@@ -166,6 +184,24 @@ def do_turn(user_message: str, session_dir: str = "session") -> dict:
     character = config["character"]
     persona = config["persona"]
     worldbook = config["worldbook"]
+
+    # Merge web frontend user profile into persona so {{user}} reflects settings
+    try:
+        settings_path = Path.cwd() / "web-frontend" / "settings.json"
+        if not settings_path.exists():
+            settings_path = Path(__file__).resolve().parent.parent.parent / "web-frontend" / "settings.json"
+        if settings_path.exists():
+            settings = json.loads(settings_path.read_text(encoding="utf-8", errors="replace"))
+            user_name = (settings.get("userName") or "").strip()
+            user_bio = settings.get("userBio")
+            if isinstance(user_bio, str):
+                user_bio = user_bio.strip()
+            if user_name:
+                persona["name"] = user_name
+            if user_bio is not None:
+                persona["description"] = user_bio
+    except Exception:
+        pass
 
     char_name = character.get("data", character).get("name", "Character")
     user_name = persona.get("name", "User")

@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>资源管理 - OpenCode AIRP</title>
+<style>
+:root{
+  --bg:#16110e;
+  --panel:#1f1915;
+  --panel-2:#2a221c;
+  --text:#e8dcc8;
+  --muted:#a89880;
+  --line:#3d3228;
+  --gold:#d4a574;
+  --gold-2:#c49a6c;
+  --brand:#e8b86d;
+  --brand-2:#3d2e1a;
+  --danger:#c45c5c;
+  --shadow:0 12px 36px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);
+  font:14px/1.55 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+  min-height:100vh;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{touch-action:manipulation;cursor:pointer}
+.top{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 20px;
+  background:linear-gradient(180deg, rgba(212,165,116,.08), transparent);
+  border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:20;
+  backdrop-filter:blur(8px);
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{
+  width:28px;height:28px;border-radius:6px;
+  background:linear-gradient(135deg, var(--gold), var(--gold-2));
+  display:flex;align-items:center;justify-content:center;
+  color:#1a1614;font-weight:900;font-size:14px;
+}
+.brand-text{font-weight:700;font-size:15px;color:var(--gold);letter-spacing:.3px}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.spacer{flex:1}
+.icon-btn{
+  width:36px;height:36px;border-radius:8px;border:1px solid var(--line);
+  background:var(--panel);color:var(--text);display:inline-flex;align-items:center;justify-content:center;
+  text-decoration:none;transition:all .15s;font-size:13px;
+}
+.icon-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--panel-2)}
+.btn{
+  border:1px solid var(--line);background:var(--panel);color:var(--text);
+  border-radius:8px;padding:6px 12px;font-size:12px;display:inline-flex;align-items:center;gap:6px;
+  transition:all .15s;
+}
+.btn:hover{border-color:var(--gold);color:var(--gold);background:var(--panel-2)}
+.btn-primary{
+  border:none;background:linear-gradient(135deg, var(--gold), var(--gold-2));
+  color:#1a1614;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;
+}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-danger{
+  border:1px solid var(--danger);background:transparent;color:var(--danger);
+  border-radius:6px;padding:4px 10px;font-size:11px;
+}
+.btn-danger:hover{background:rgba(196,92,92,.1)}
+.container{
+  max-width:1200px;margin:0 auto;padding:20px;
+}
+.toolbar{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:16px;flex-wrap:wrap;
+}
+.page-title{
+  font-size:22px;font-weight:800;color:var(--gold);letter-spacing:.3px;
+}
+.tabs{
+  display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;
+}
+.tab{
+  border:1px solid var(--line);background:var(--panel);color:var(--text);
+  border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;transition:all .15s;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.tab:hover{border-color:var(--gold);color:var(--gold)}
+.tab.active{
+  background:var(--brand-2);border-color:var(--gold);color:var(--gold);font-weight:600;
+}
+.card-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+  gap:14px;
+}
+.card-item{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  overflow:hidden;transition:all .15s;cursor:pointer;
+}
+.card-item:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:var(--shadow)}
+.card-image{
+  width:100%;aspect-ratio:3/4;background:var(--panel-2);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;
+  position:relative;overflow:hidden;
+}
+.card-image img{width:100%;height:100%;object-fit:cover;display:block}
+.card-image .placeholder{display:flex;flex-direction:column;align-items:center;gap:4px}
+.card-body{padding:10px 12px}
+.card-name{
+  font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-bottom:4px;
+}
+.card-meta{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-actions{
+  display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);
+}
+.card-actions .btn{flex:1;justify-content:center;font-size:11px;padding:4px 8px}
+.empty{
+  text-align:center;padding:60px 20px;color:var(--muted);
+}
+.empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.empty-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px}
+.empty-desc{font-size:13px}
+
+.modal-backdrop{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,.5);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+}
+.modal-backdrop.open{display:flex}
+.modal{
+  background:var(--panel);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow);width:min(520px,92vw);max-height:90vh;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.modal-head{
+  display:flex;align-items:center;gap:10px;
+  padding:16px 18px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(212,165,116,.06), transparent);
+}
+.modal-title{font-size:16px;font-weight:700;color:var(--gold)}
+.modal-close{
+  margin-left:auto;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);
+  background:var(--panel);color:var(--text);display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;
+}
+.modal-close:hover{border-color:var(--gold);color:var(--gold)}
+.modal-body{padding:18px;overflow-y:auto}
+.upload-zone{
+  border:2px dashed var(--line);border-radius:12px;padding:40px 20px;
+  text-align:center;cursor:pointer;transition:all .15s;background:var(--panel-2);
+}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--gold);background:rgba(212,165,116,.05)}
+.upload-zone input{display:none}
+.upload-icon{font-size:36px;color:var(--muted);margin-bottom:8px}
+.upload-text{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.upload-hint{font-size:12px;color:var(--muted)}
+.upload-preview{
+  margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+}
+.upload-thumb{
+  width:60px;height:80px;border-radius:6px;border:1px solid var(--line);overflow:hidden;position:relative;
+}
+.upload-thumb img{width:100%;height:100%;object-fit:cover}
+.upload-thumb .remove{
+  position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;
+  background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:10px;
+  display:flex;align-items:center;justify-content:center;
+}
+.modal-foot{
+  display:flex;gap:10px;justify-content:flex-end;
+  padding:12px 18px 16px;border-top:1px solid var(--line);
+}
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;
+  background:var(--panel-2);color:var(--gold);border:1px solid var(--gold);
+  border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;
+  box-shadow:var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;max-width:90vw;
+}
+.toast.show{opacity:1;pointer-events:auto}
+.toast button{
+  border:1px solid var(--gold);background:var(--panel);color:var(--gold);
+  border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;white-space:nowrap;
+}
+.toast button:hover{border-color:var(--gold-2);background:var(--brand-2)}
+.badge{
+  font-size:10px;padding:2px 8px;border-radius:4px;
+  background:var(--brand-2);color:var(--gold);border:1px solid rgba(212,165,116,.2);
+  white-space:nowrap;
+}
+.stat{font-size:11px;color:var(--muted);white-space:nowrap}
+.loading{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.spinner{
+  width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--gold);
+  border-radius:50%;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand">
+    <div class="brand-icon">AIRP</div>
+    <div>
+      <div class="brand-text">OpenCode AIRP SillyTavern</div>
+      <div class="brand-sub">资源管理</div>
+    </div>
+  </div>
+  <span class="spacer"></span>
+  <a class="icon-btn" href="/index.html" title="返回对话">&#8592;</a>
+</div>
+
+<div class="container">
+  <div class="toolbar">
+    <div class="page-title">资源管理</div>
+    <span class="spacer"></span>
+    <button class="btn-primary" onclick="openImportModal()">+ 添加角色卡</button>
+    <button class="btn" onclick="refreshCards()">&#8635; 刷新</button>
+    <button class="btn" onclick="migrateResources()">&#128260; 资源迁移</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="cards" onclick="switchTab(this)">&#128100; 角色卡</button>
+    <button class="tab" data-tab="worldbooks" onclick="switchTab(this)">&#127758; 世界书</button>
+    <button class="tab" data-tab="history" onclick="switchTab(this)">&#128197; 对话历史</button>
+    <button class="tab" data-tab="presets" onclick="switchTab(this)">&#128396; 预设</button>
+    <button class="tab" data-tab="regex" onclick="switchTab(this)">&#10070; 正则</button>
+    <button class="tab" data-tab="builtin-cards" onclick="switchTab(this)">&#128188; 内置角色卡</button>
+    <button class="tab" data-tab="builtin-presets" onclick="switchTab(this)">&#128295; 内置预设</button>
+  </div>
+
+  <div id="tab-cards" class="tab-panel">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <span style="font-size:12px;color:var(--muted)">角色卡</span>
+      <span style="font-size:12px;color:var(--muted)" id="cardCount">共 0 张</span>
+      <span class="spacer"></span>
+      <button class="btn" style="font-size:11px;padding:4px 10px" onclick="openImportModal()">批量操作</button>
+    </div>
+    <div id="cardGrid" class="card-grid">
+      <div class="loading"><div class="spinner"></div>加载中...</div>
+    </div>
+  </div>
+
+  <div id="tab-worldbooks" class="tab-panel hidden">
+    <div class="empty">
+      <div class="empty-icon">&#127758;</div>
+      <div class="empty-title">世界书管理</div>
+      <div class="empty-desc">世界书条目随角色卡存储，请先选择一个角色卡查看其世界书。</div>
+    </div>
+  </div>
+
+  <div id="tab-history" class="tab-panel hidden">
+    <div class="empty">
+      <div class="empty-icon">&#128197;</div>
+      <div class="empty-title">对话历史</div>
+      <div class="empty-desc">对话历史与角色卡绑定，可在角色卡详情中查看和管理。</div>
+    </div>
+  </div>
+
+  <div id="tab-presets" class="tab-panel hidden">
+    <div class="empty">
+      <div class="empty-icon">&#128396;</div>
+      <div class="empty-title">预设管理</div>
+      <div class="empty-desc">预设系统正在开发中，敬请期待。</div>
+    </div>
+  </div>
+
+  <div id="tab-regex" class="tab-panel hidden">
+    <div class="empty">
+      <div class="empty-icon">&#10070;</div>
+      <div class="empty-title">正则替换</div>
+      <div class="empty-desc">正则替换功能正在开发中，敬请期待。</div>
+    </div>
+  </div>
+
+  <div id="tab-builtin-cards" class="tab-panel hidden">
+    <div class="empty">
+      <div class="empty-icon">&#128188;</div>
+      <div class="empty-title">内置角色卡</div>
+      <div class="empty-desc">内置角色卡功能正在开发中，敬请期待。</div>
+    </div>
+  </div>
+
+  <div id="tab-builtin-presets" class="tab-panel hidden">
+    <div class="empty">
+      <div class="empty-icon">&#128295;</div>
+      <div class="empty-title">内置预设</div>
+      <div class="empty-desc">内置预设功能正在开发中，敬请期待。</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="importBackdrop" onclick="closeImportModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">添加角色卡</div>
+      <button class="modal-close" onclick="closeImportModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept=".png" multiple onchange="handleFileSelect(event)">
+        <div class="upload-icon">&#8682;</div>
+        <div class="upload-text">点击选择或拖拽文件到此处</div>
+        <div class="upload-hint">支持选择多个 .png 格式的角色卡图片</div>
+        <div class="upload-preview" id="uploadPreview"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeImportModal()">取消</button>
+      <button class="btn-primary" id="importBtn" onclick="startImport()" disabled>开始导入</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let selectedFiles = [];
+let cards = [];
+
+function toast(text, buttons) {
+  const el = $('toast');
+  el.innerHTML = text;
+  if (buttons && buttons.length) {
+    el.innerHTML += ' ' + buttons.map(b =>
+      `<button data-action="${escAttr(b.action)}">${esc(b.label)}</button>`
+    ).join(' ');
+    el.querySelectorAll('button').forEach(btn => {
+      btn.onclick = () => {
+        const action = btn.dataset.action;
+        el.classList.remove('show');
+      };
+    });
+  }
+  el.classList.add('show');
+  if (!buttons) setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function esc(s) { return String(s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) }
+function escAttr(s) { return String(s || '').replace(/['\\]/g, '\\$&').replace(/\n/g, ' ') }
+
+async function api(path, opts) {
+  const res = await fetch(path, Object.assign({ headers: { 'Content-Type': 'application/json' } }, opts || {}));
+  const data = await res.json();
+  if (!data.ok && data.error) throw new Error(data.error);
+  return data;
+}
+
+function switchTab(btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+  btn.classList.add('active');
+  const panel = $('tab-' + btn.dataset.tab);
+  if (panel) panel.classList.remove('hidden');
+}
+
+function openImportModal() {
+  selectedFiles = [];
+  $('uploadPreview').innerHTML = '';
+  $('importBtn').disabled = true;
+  $('importBackdrop').classList.add('open');
+  $('fileInput').value = '';
+}
+
+function closeImportModal() {
+  $('importBackdrop').classList.remove('open');
+}
+
+function handleFileSelect(event) {
+  const files = Array.from(event.target.files || []);
+  selectedFiles = files.filter(f => f.name.toLowerCase().endsWith('.png'));
+  updateUploadPreview();
+  $('importBtn').disabled = selectedFiles.length === 0;
+}
+
+function updateUploadPreview() {
+  const container = $('uploadPreview');
+  container.innerHTML = selectedFiles.map((f, i) =>
+    `<div class="upload-thumb">
+      <img src="${URL.createObjectURL(f)}">
+      <button class="remove" onclick="removeFile(${i})">&times;</button>
+    </div>`
+  ).join('');
+}
+
+function removeFile(index) {
+  selectedFiles.splice(index, 1);
+  updateUploadPreview();
+  $('importBtn').disabled = selectedFiles.length === 0;
+}
+
+async function startImport() {
+  if (!selectedFiles.length) return;
+  const btn = $('importBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div>导入中...';
+  try {
+    const form = new FormData();
+    selectedFiles.forEach(f => form.append('file', f));
+    const res = await fetch('/api/cards/import', { method: 'POST', body: form });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '导入失败');
+    toast(`成功导入 ${data.imported.length} 张角色卡`);
+    closeImportModal();
+    await refreshCards();
+  } catch (e) {
+    toast('导入失败: ' + e.message);
+    btn.disabled = false;
+    btn.innerHTML = '开始导入';
+  }
+}
+
+async function refreshCards() {
+  const grid = $('cardGrid');
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div>加载中...</div>';
+  try {
+    const data = await api('/api/resources/cards');
+    cards = data.cards || [];
+    renderCards(cards);
+    $('cardCount').textContent = `共 ${cards.length} 张`;
+  } catch (e) {
+    grid.innerHTML = `<div class="empty"><div class="empty-desc">加载失败: ${esc(e.message)}</div></div>`;
+  }
+}
+
+function renderCards(list) {
+  const grid = $('cardGrid');
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <div class="empty-icon">&#128100;</div>
+      <div class="empty-title">暂无角色卡</div>
+      <div class="empty-desc">点击上方"添加角色卡"按钮导入你的第一张角色卡</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = list.map(c => {
+    const imageHtml = c.hasImage && c.imagePath
+      ? `<img src="/api/image?path=${esc(c.imagePath)}" loading="lazy">`
+      : `<div class="placeholder"><span style="font-size:32px;opacity:.3">&#128100;</span><span>无图片</span></div>`;
+    return `<div class="card-item" onclick="playCard('${escAttr(c.id)}')">
+      <div class="card-image">${imageHtml}</div>
+      <div class="card-body">
+        <div class="card-name" title="${esc(c.name)}">${esc(c.name)}</div>
+        <div class="card-meta">
+          <span class="badge">${esc(c.format || 'v2')}</span>
+          <span class="stat">${c.messages || 0} 条消息</span>
+        </div>
+        <div class="card-actions" onclick="event.stopPropagation()">
+          <button class="btn" onclick="playCard('${escAttr(c.id)}')">&#9654; 进入</button>
+          <button class="btn-danger" onclick="deleteCard('${escAttr(c.id)}', '${escAttr(c.name)}')">&#128465; 删除</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function playCard(id) {
+  try {
+    await api('/api/play', { method: 'POST', body: JSON.stringify({ card: id }) });
+    window.location.href = '/index.html';
+  } catch (e) {
+    toast('切换失败: ' + e.message);
+  }
+}
+
+async function deleteCard(id, name) {
+  if (!confirm(`确定删除角色卡「${name}」吗？\n此操作不可恢复。`)) return;
+  try {
+    const data = await api('/api/cards/delete', { method: 'POST', body: JSON.stringify({ id }) });
+    toast(`已删除「${name}」`);
+    await refreshCards();
+  } catch (e) {
+    toast('删除失败: ' + e.message);
+  }
+}
+
+async function migrateResources() {
+  if (!confirm('资源迁移功能即将到来，是否现在开始？')) return;
+  toast('资源迁移功能正在开发中');
+}
+
+// Drag and drop
+const uploadZone = $('uploadZone');
+if (uploadZone) {
+  uploadZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+  });
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+  });
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.png'));
+    if (files.length) {
+      selectedFiles = files;
+      updateUploadPreview();
+      $('importBtn').disabled = false;
+    }
+  });
+}
+
+// Init
+refreshCards();
+</script>
+</body>
+</html>

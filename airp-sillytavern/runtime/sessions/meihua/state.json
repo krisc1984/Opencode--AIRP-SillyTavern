@@ -1,0 +1,18 @@
+{
+  "turn": 0,
+  "created_at": "2026-06-28T21:15:17",
+  "updated_at": "2026-06-28T21:15:17",
+  "char_name": "",
+  "user_name": "测试用户",
+  "time_in_story": "",
+  "location": "",
+  "active_characters": [],
+  "mood": "",
+  "inventory": [],
+  "injuries": [],
+  "relationships": {},
+  "open_hooks": [],
+  "secrets": [],
+  "important_facts": [],
+  "last_updated_turn": 0
+}

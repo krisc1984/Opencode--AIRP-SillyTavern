@@ -161,6 +161,25 @@ def add_relation(relation: dict, card_id: str | None = None) -> dict:
     return relation
 
 
+def update_relation(relation_id: str, updates: dict, card_id: str | None = None) -> dict | None:
+    relations = load_relations(card_id)
+    for idx, relation in enumerate(relations):
+        if relation.get("id") == relation_id:
+            relations[idx] = {**relation, **updates}
+            save_relations(relations, card_id)
+            return relations[idx]
+    return None
+
+
+def remove_relation(relation_id: str, card_id: str | None = None) -> bool:
+    relations = load_relations(card_id)
+    filtered = [r for r in relations if r.get("id") != relation_id]
+    if len(filtered) == len(relations):
+        return False
+    save_relations(filtered, card_id)
+    return True
+
+
 def extract_character_relations_from_worldbook(card_id: str | None = None) -> list[dict]:
     """Extract character names from worldbook entries as initial relations."""
     relations = []
@@ -221,6 +240,7 @@ def extract_character_relations_from_worldbook(card_id: str | None = None) -> li
                             relation_desc = parts[1].strip()
                 
                 relations.append({
+                    "id": __import__("uuid").uuid4().hex,
                     "name": name,
                     "relation": relation_desc or "世界书角色",
                     "favor": 0,
@@ -253,6 +273,55 @@ def load_relation_suggestions(card_id: str | None = None) -> list[dict]:
 
 def save_relation_suggestions(suggestions: list[dict], card_id: str | None = None) -> None:
     atomic_json(get_relation_suggestions_path(card_id), suggestions)
+
+
+# ---------------------------------------------------------------------------
+# Goals / Events / Assets helpers
+# ---------------------------------------------------------------------------
+
+def get_goals_path(card_id: str | None = None) -> Path:
+    return get_card_dir(card_id) / "goals.json"
+
+
+def get_events_path(card_id: str | None = None) -> Path:
+    return get_card_dir(card_id) / "events.json"
+
+
+def get_assets_path(card_id: str | None = None) -> Path:
+    return get_card_dir(card_id) / "assets.json"
+
+
+def load_goals(card_id: str | None = None) -> list[dict]:
+    data = read_json(get_goals_path(card_id), {"goals": []})
+    goals = data.get("goals", []) if isinstance(data, dict) else []
+    return [g for g in goals if isinstance(g, dict)]
+
+
+def save_goals(goals: list[dict], card_id: str | None = None) -> None:
+    atomic_json(get_goals_path(card_id), {"goals": goals})
+
+
+def load_events(card_id: str | None = None) -> list[dict]:
+    data = read_json(get_events_path(card_id), {"events": []})
+    events = data.get("events", []) if isinstance(data, dict) else []
+    return [e for e in events if isinstance(e, dict)]
+
+
+def save_events(events: list[dict], card_id: str | None = None) -> None:
+    atomic_json(get_events_path(card_id), {"events": events})
+
+
+def load_assets(card_id: str | None = None) -> tuple[list[dict], int]:
+    data = read_json(get_assets_path(card_id), {"assets": [], "totalCapacity": 50})
+    if not isinstance(data, dict):
+        return [], 50
+    assets = [a for a in data.get("assets", []) if isinstance(a, dict)]
+    capacity = int(data.get("totalCapacity", 50) or 50)
+    return assets, capacity
+
+
+def save_assets(assets: list[dict], card_id: str | None = None, total_capacity: int = 50) -> None:
+    atomic_json(get_assets_path(card_id), {"assets": assets, "totalCapacity": total_capacity})
 
 
 def suggest_relations_from_text(text: str, card_id: str | None = None) -> list[dict]:

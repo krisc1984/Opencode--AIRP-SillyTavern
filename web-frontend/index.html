@@ -126,6 +126,92 @@ button{touch-action:manipulation;cursor:pointer}
   color:#1a1614;border:none;cursor:pointer;white-space:nowrap;
 }
 .suggestion-btn:hover{filter:brightness(1.1)}
+.relation-confirm{
+  position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.45);backdrop-filter:blur(4px);
+}
+.relation-confirm.open{display:flex}
+.relation-confirm-card{
+  background:#fff0f5;border:1px solid #ffc2d4;border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);width:min(420px,92vw);overflow:hidden;
+}
+.relation-confirm-header{
+  display:flex;align-items:center;gap:12px;padding:16px 18px;
+  background:linear-gradient(180deg, rgba(255,182,210,.35), rgba(255,255,255,0));
+  border-bottom:1px solid #ffc2d4;
+}
+.relation-confirm-icon{
+  width:36px;height:36px;border-radius:50%;background:#ff7eb6;color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+.relation-confirm-title{font-size:15px;font-weight:700;color:#8b2a4a}
+.relation-confirm-subtitle{font-size:12px;color:#b45a78;margin-top:2px}
+.relation-confirm-body{padding:14px 18px;display:flex;flex-direction:column;gap:10px}
+.relation-confirm-avatar{
+  width:48px;height:48px;border-radius:50%;background:#ffe0eb;border:2px solid #ffb6d3;
+  color:#c44d7a;display:flex;align-items:center;justify-content:center;font-size:20px;
+}
+.relation-confirm-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.relation-confirm-name{font-size:15px;font-weight:700;color:#5a1a30}
+.relation-confirm-badge{
+  font-size:11px;padding:2px 8px;border-radius:999px;background:#ff7eb6;color:#fff;
+}
+.relation-confirm-meta{font-size:12px;color:#c44d7a}
+.relation-confirm-favor{display:inline-flex;align-items:center;gap:4px}
+.relation-confirm-desc{
+  font-size:12px;color:#8b5a6e;line-height:1.6;
+  background:rgba(255,255,255,.6);border:1px solid #ffd6e7;border-radius:10px;padding:10px 12px;
+}
+.relation-confirm-actions{display:flex;gap:10px;padding:12px 18px 16px;justify-content:flex-end}
+.relation-confirm-btn{
+  background:linear-gradient(135deg,#ff7eb6,#ff5c9e);color:#fff;border:none;border-radius:10px;
+  padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;
+}
+.relation-confirm-btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.relation-edit{
+  position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.45);backdrop-filter:blur(4px);
+}
+.relation-edit.open{display:flex}
+.relation-edit-card{
+  background:#fff0f5;border:1px solid #ffc2d4;border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);width:min(420px,92vw);overflow:hidden;
+}
+.relation-edit-header{
+  display:flex;align-items:center;gap:12px;padding:16px 18px;
+  background:linear-gradient(180deg, rgba(255,182,210,.35), rgba(255,255,255,0));
+  border-bottom:1px solid #ffc2d4;
+}
+.relation-edit-icon{
+  width:36px;height:36px;border-radius:50%;background:#ff7eb6;color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+.relation-edit-title{font-size:15px;font-weight:700;color:#8b2a4a}
+.relation-edit-subtitle{font-size:12px;color:#b45a78;margin-top:2px}
+.relation-edit-body{padding:14px 18px;display:flex;flex-direction:column;gap:10px}
+.relation-edit-field{display:flex;flex-direction:column;gap:4px}
+.relation-edit-field label{font-size:12px;color:#8b5a6e;font-weight:600}
+.relation-edit-field input{
+  padding:8px 10px;border-radius:8px;border:1px solid #ffd6e7;
+  background:rgba(255,255,255,.8);color:#5a1a30;font-size:13px;outline:none;
+}
+.relation-edit-field input:focus{border-color:#ff7eb6;box-shadow:0 0 0 3px rgba(255,126,182,.15)}
+.relation-edit-actions{display:flex;gap:10px;padding:12px 18px 16px;justify-content:flex-end}
+.relation-edit-btn{
+  padding:8px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:none;
+}
+.relation-edit-btn-save{
+  background:linear-gradient(135deg,#ff7eb6,#ff5c9e);color:#fff;
+}
+.relation-edit-btn-save:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.relation-edit-btn-delete{
+  background:linear-gradient(135deg,#ff9a9a,#ff6b6b);color:#fff;
+}
+.relation-edit-btn-delete:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.relation-edit-btn-cancel{
+  background:rgba(255,255,255,.7);color:#8b5a6e;border:1px solid #ffd6e7;
+}
+.relation-edit-btn-cancel:hover{background:rgba(255,255,255,.9)}
 .attr-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:12px}
 .attr-label{color:var(--muted);display:flex;align-items:center;gap:4px}
 .attr-value{color:var(--text);font-weight:500}
@@ -158,11 +244,40 @@ button{touch-action:manipulation;cursor:pointer}
 .msg th,.msg td{border:1px solid var(--line);padding:5px 8px;text-align:left;color:var(--text)}
 .msg th{background:var(--panel-2);font-weight:600}
 .msg tr:nth-child(even){background:var(--panel-2)}
+.msg details{border:1px solid var(--line);border-radius:6px;background:var(--bg);margin:6px 0;overflow:hidden}
+.msg summary{padding:8px 10px;font-weight:600;cursor:pointer;color:var(--gold);background:var(--panel-2);list-style:none;display:flex;align-items:center;gap:6px}
+.msg summary::-webkit-details-marker{display:none}
+.msg details[open] summary{border-bottom:1px solid var(--line)}
+.msg hr{border:none;border-top:1px solid var(--line);margin:8px 0}
+.msg ul,.msg ol{margin:4px 0;padding-left:20px}
+.msg li{margin:2px 0}
+.msg p{margin:4px 0}
+.msg h1,.msg h2,.msg h3,.msg h4{margin:8px 0 4px;color:var(--gold);font-size:14px}
+.msg blockquote{border-left:3px solid var(--gold);padding:4px 10px;margin:6px 0;color:var(--muted);background:var(--panel)}
+.msg code{background:var(--panel);padding:1px 4px;border-radius:3px;font-family:monospace;font-size:12px}
+.msg pre{background:var(--panel);padding:8px;border-radius:6px;overflow:auto;font-size:12px;white-space:pre-wrap}
+.msg a{color:var(--gold);text-decoration:underline}
 .stat-change{
   display:inline-flex;align-items:center;gap:4px;
   padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;
   background:rgba(232,184,109,.08);color:var(--gold);border:1px solid rgba(232,184,109,.15);
 }
+.msg-more{font-family:Georgia,serif;letter-spacing:1px;user-select:none}
+.msg-menu{
+  display:none;position:absolute;right:8px;top:100%;z-index:20;
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  box-shadow:var(--shadow);padding:4px;min-width:160px;
+  flex-direction:column;gap:2px;
+}
+.msg-menu.open{display:flex}
+.msg-menu button{
+  border:none;background:transparent;color:var(--text);text-align:left;
+  border-radius:6px;padding:7px 10px;font-size:12px;cursor:pointer;
+  display:flex;align-items:center;gap:8px;width:100%;white-space:nowrap;
+}
+.msg-menu button:hover{background:var(--panel-2);color:var(--gold)}
+.msg-wrap{position:relative}
+.msg-row{position:relative}
 .actions-bar{
   display:flex;align-items:center;gap:8px;
   padding:8px 14px;border-top:1px solid var(--line);
@@ -194,6 +309,36 @@ button{touch-action:manipulation;cursor:pointer}
   border-radius:999px;padding:4px 10px;font-size:11px;cursor:pointer;
 }
 .options button:hover{border-color:var(--gold);color:var(--gold)}
+.options-panel{
+  border-top:1px solid var(--line);
+  background:var(--panel);
+  max-height:280px;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.options-panel.hidden{display:none}
+.options-panel-body{
+  flex:1;overflow-y:auto;padding:6px 10px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.option-item{
+  display:flex;align-items:baseline;gap:8px;
+  padding:6px 10px;border-radius:6px;
+  border:1px solid transparent;background:var(--panel-2);
+  cursor:pointer;transition:all .12s;user-select:none;
+}
+.option-item:hover{border-color:var(--gold);background:rgba(212,165,116,.06)}
+.option-item-index{
+  font-size:11px;color:var(--gold);font-weight:700;flex-shrink:0;
+  min-width:18px;text-align:right;
+}
+.option-item-text{
+  font-size:12px;color:var(--text);line-height:1.5;flex:1;
+}
+.options-panel-hint{
+  padding:6px 14px 8px;font-size:11px;color:var(--muted);
+  border-top:1px solid var(--line);
+}
 .empty{padding:24px;color:var(--muted);text-align:center;font-size:13px}
 .hidden{display:none}
 .selection-popup{
@@ -351,6 +496,7 @@ button{touch-action:manipulation;cursor:pointer}
   <span class="pill" id="health">启动中</span>
   <span class="spacer"></span>
   <a class="icon-btn" href="/preset-manager.html" title="预设管理">&#9881;</a>
+  <a class="icon-btn" href="/resources.html" title="资源管理">&#128220;</a>
   <button class="icon-btn" onclick="reroll()" title="重新生成">&#8635;</button>
   <button class="icon-btn" onclick="toggleTheme()" title="明暗主题">&#9714;</button>
   <button class="icon-btn" onclick="toggleSide()" title="角色卡与设置">&#9776;</button>
@@ -370,13 +516,48 @@ button{touch-action:manipulation;cursor:pointer}
         </div>
       </div>
 
+      <div class="card" id="userCard">
+        <div class="card-head">
+          <div class="card-title">&#128100; 我</div>
+          <span class="spacer" style="flex:1"></span>
+          <button class="btn" style="font-size:10px;padding:3px 8px" id="editUserBtn" onclick="toggleUserEdit()">编辑</button>
+        </div>
+        <div class="card-body">
+          <div id="userViewMode">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div id="userAvatar" style="width:36px;height:36px;border-radius:8px;background:var(--brand-2);color:var(--brand);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;overflow:hidden">U</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:var(--text)" id="userNameDisplay">User</div>
+                <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="userBioDisplay"></div>
+              </div>
+            </div>
+            <button class="btn" style="margin-top:8px;width:100%;font-size:11px;padding:4px" onclick="document.getElementById('userAvatarInput').click()">上传头像</button>
+          </div>
+          <div id="userEditMode" class="hidden">
+            <div class="field" style="margin-bottom:8px">
+              <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">用户名</label>
+              <input id="editUserName" style="width:100%;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);color:var(--text);padding:6px 8px;font-size:12px">
+            </div>
+            <div class="field" style="margin-bottom:8px">
+              <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">简介</label>
+              <textarea id="editUserBio" style="width:100%;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);color:var(--text);padding:6px 8px;font-size:12px;min-height:50px;resize:vertical"></textarea>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn-primary" style="flex:1;padding:5px 10px;font-size:11px" onclick="saveUserProfile()">保存</button>
+              <button class="btn" style="flex:1;padding:5px 10px;font-size:11px" onclick="toggleUserEdit()">取消</button>
+            </div>
+          </div>
+          <input type="file" id="userAvatarInput" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none" onchange="handleUserAvatar(event)">
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-head">
           <div class="card-title">&#128100; 人脉 <span style="font-size:11px;color:var(--muted)" id="relationCount">0</span></div>
           <span class="spacer" style="flex:1"></span>
           <button class="btn" style="font-size:10px;padding:3px 8px" onclick="openRelationModal()">+ 添加</button>
         </div>
-        <div class="card-body" id="relations">
+        <div class="card-body" id="relations" style="max-height:320px;overflow-y:auto">
           <div class="empty" style="padding:16px">加载中...</div>
         </div>
       </div>
@@ -391,17 +572,6 @@ button{touch-action:manipulation;cursor:pointer}
           <div class="empty" style="padding:16px">暂无建议</div>
         </div>
       </div>
-
-      <div class="card">
-        <div class="card-head">
-          <div class="card-title">&#128100; 属性</div>
-        </div>
-        <div class="card-body" id="attributes">
-          <div class="attr-row"><span class="attr-label">&#9794; 性别</span><span class="attr-value" id="attrGender">男</span></div>
-          <div class="attr-row"><span class="attr-label">&#127757; 种族</span><span class="attr-value" id="attrRace">人类</span></div>
-          <div class="attr-row"><span class="attr-label">&#128100; 身份</span><span class="attr-value" id="attrIdentity">艾尔丹原住民</span></div>
-        </div>
-      </div>
     </div>
 
     <div class="main">
@@ -413,11 +583,15 @@ button{touch-action:manipulation;cursor:pointer}
         <div class="chat-body" id="chat">
           <div class="empty">正在载入...</div>
         </div>
-        <div class="actions-bar" id="actionsBar">
+        <div class="actions-bar" id="actionsBar" onclick="toggleOptions()">
           <span style="font-size:11px;color:var(--muted)">&#127991; 展开行动选项</span>
           <span style="font-size:11px;color:var(--gold);font-weight:600" id="actionCount">0</span>
           <span class="spacer" style="flex:1"></span>
-          <span style="font-size:10px;color:var(--muted)">&#9650;</span>
+          <span style="font-size:10px;color:var(--muted);transition:transform .2s" id="expandArrow">&#9650;</span>
+        </div>
+        <div class="options-panel hidden" id="optionsPanel">
+          <div class="options-panel-body" id="optionsPanelBody"></div>
+          <div class="options-panel-hint" style="padding:6px 14px;font-size:11px;color:var(--muted)">点击选项即可添加到对话框，可多次点击叠加</div>
         </div>
         <div class="composer">
           <div class="options" id="options"></div>
@@ -595,6 +769,68 @@ button{touch-action:manipulation;cursor:pointer}
   </div>
 </div>
 
+<div class="backdrop" id="relationConfirmBackdrop" onclick="closeRelationConfirm()"></div>
+<div class="relation-confirm" id="relationConfirmModal" aria-hidden="true">
+  <div class="relation-confirm-card">
+    <div class="relation-confirm-header">
+      <div class="relation-confirm-icon">&#128100;</div>
+      <div>
+        <div class="relation-confirm-title">新人脉出现</div>
+        <div class="relation-confirm-subtitle">是否将此人加入你的人脉圈？</div>
+      </div>
+    </div>
+    <div class="relation-confirm-body">
+      <div class="relation-confirm-avatar" id="confirmAvatar">?</div>
+      <div class="relation-confirm-info">
+        <div class="relation-confirm-name" id="confirmName">-</div>
+        <div class="relation-confirm-badge" id="confirmBadge">新角色</div>
+      </div>
+      <div class="relation-confirm-meta">
+        <span class="relation-confirm-favor" id="confirmFavor">&#10084; 0 好感</span>
+      </div>
+      <div class="relation-confirm-desc" id="confirmDesc">-</div>
+    </div>
+    <div class="relation-confirm-actions">
+      <button class="btn" onclick="rejectRelation()">婉拒</button>
+      <button class="btn-primary relation-confirm-btn" onclick="confirmAddRelation()">&#128100; 加入人脉</button>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop" id="relationEditBackdrop" onclick="closeRelationEdit()"></div>
+<div class="relation-edit" id="relationEditModal" aria-hidden="true">
+  <div class="relation-edit-card">
+    <div class="relation-edit-header">
+      <div class="relation-edit-icon">&#128100;</div>
+      <div>
+        <div class="relation-edit-title">编辑人脉</div>
+        <div class="relation-edit-subtitle">修改人脉信息</div>
+      </div>
+      <span class="spacer"></span>
+      <button class="icon-btn" onclick="closeRelationEdit()" title="关闭">&times;</button>
+    </div>
+    <div class="relation-edit-body">
+      <div class="relation-edit-field">
+        <label>角色名</label>
+        <input id="editRelationName" placeholder="输入角色名称">
+      </div>
+      <div class="relation-edit-field">
+        <label>关系 / 描述</label>
+        <input id="editRelationDesc" placeholder="例如：陌生人、盟友、宿敌">
+      </div>
+      <div class="relation-edit-field">
+        <label>好感度</label>
+        <input id="editRelationFavor" type="number" value="0">
+      </div>
+    </div>
+    <div class="relation-edit-actions">
+      <button class="relation-edit-btn relation-edit-btn-cancel" onclick="closeRelationEdit()">取消</button>
+      <button class="relation-edit-btn relation-edit-btn-delete" onclick="deleteRelation()">删除</button>
+      <button class="relation-edit-btn relation-edit-btn-save" onclick="saveRelationEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const $=id=>document.getElementById(id);
 let waiting=false,lastMessages=-1,currentCard="";
@@ -647,6 +883,45 @@ function toggleTheme(){
   localStorage.setItem('airp.presetTheme',document.body.dataset.theme);
   saveSettings({theme:document.body.dataset.theme}).catch(()=>{});
 }
+
+let optionsExpanded = false;
+
+function toggleOptions(){
+  optionsExpanded = !optionsExpanded;
+  const panel = $('optionsPanel');
+  const arrow = $('expandArrow');
+  if(optionsExpanded){
+    panel.classList.remove('hidden');
+    arrow.style.transform = 'rotate(180deg)';
+  } else {
+    panel.classList.add('hidden');
+    arrow.style.transform = '';
+  }
+}
+
+function renderOptionCheckboxes(options){
+  const body = $('optionsPanelBody');
+  if(!options || !options.length){
+    body.innerHTML = '<div class="empty" style="padding:14px;font-size:12px">暂无行动选项</div>';
+    return;
+  }
+  body.innerHTML = options.map((opt, i) => `
+    <div class="option-item" data-index="${i}" data-text="${escAttr(opt)}">
+      <span class="option-item-index">${i + 1}.</span>
+      <span class="option-item-text">${esc(opt)}</span>
+    </div>
+  `).join('');
+}
+
+function addOptionToInput(text, el){
+  const input = $('input');
+  if(!input) return;
+  const prefix = input.value ? input.value + '\n' : '';
+  input.value = prefix + text;
+  input.focus();
+  toast('已添加: ' + text);
+}
+
 
 function clamp(value,min,max){return Math.max(min,Math.min(max,value))}
 function setChatWidth(width,persist){
@@ -770,7 +1045,7 @@ async function loadContent(force){
   $('chatMeta').textContent=(data.messages||0)+' 条消息';
   $('actionCount').textContent=String(data.options?data.options.length:0);
   $('chat').innerHTML=data.html||'<div class="empty">选择角色卡后输入消息开始。</div>';
-  $('options').innerHTML=(data.options||[]).map(o=>`<button onclick="pick('${escAttr(o)}')">${esc(o)}</button>`).join('');
+  renderOptionCheckboxes(data.options||[]);
   $('chat').scrollTop=$('chat').scrollHeight;
 }
 async function loadContext(){
@@ -833,6 +1108,9 @@ function pollReply(){
           $('sendBtn').textContent='发送';
           setStatus('待机');
           loadContext();
+          loadGoals().catch(()=>{});
+          loadEvents().catch(()=>{});
+          loadAssets().catch(()=>{});
         }
       }
     }catch(e){
@@ -917,22 +1195,41 @@ async function loadQueue(){
   }catch(e){}
 }
 function esc(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-function escAttr(s){return String(s||'').replace(/['\\]/g,'\\$&').replace(/\n/g,' ')}
+function escAttr(s){const v=String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,' ');return v}
 function handlePortrait(event){
+  console.log('[portrait] event fired', event.type, event.target.files.length);
   const file=event.target.files[0];
-  if(!file)return;
+  if(!file){
+    console.log('[portrait] no file selected');
+    return;
+  }
+  console.log('[portrait] file selected', file.name, file.type, file.size);
   const form=new FormData();
   form.append('file',file);
+  const previewUrl = URL.createObjectURL(file);
+  const portrait=$('portrait');
+  portrait.innerHTML='<img src="'+previewUrl+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px">';
+  portrait.style.borderStyle='solid';
+  portrait.style.borderColor='var(--gold)';
+  console.log('[portrait] uploading...');
   fetch('/api/character-image',{method:'POST',body:form})
-    .then(r=>{if(r.ok)return r.blob();throw new Error('上传失败')})
-    .then(blob=>{
-      const url=URL.createObjectURL(blob);
-      const portrait=$('portrait');
-      portrait.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px">';
-      portrait.style.borderStyle='solid';
-      portrait.style.borderColor='var(--gold)';
+    .then(async r=>{
+      const text=await r.text();
+      console.log('[portrait] response status', r.status, 'body', text);
+      if(r.ok) return;
+      let data={};
+      try{ data=JSON.parse(text); }catch(e){}
+      throw new Error(data.error || ('上传失败 ' + r.status));
     })
-    .catch(e=>toast(e.message));
+    .then(()=>{
+      console.log('[portrait] upload success');
+      toast('头像已更新');
+    })
+    .catch(e=>{
+      console.error('[portrait] upload failed', e);
+      toast(e.message);
+      loadCharacterImage();
+    });
 }
 async function loadCharacterImage(){
   try{
@@ -941,12 +1238,100 @@ async function loadCharacterImage(){
       const blob=await response.blob();
       const url=URL.createObjectURL(blob);
       const portrait=$('portrait');
-      portrait.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px">';
-      portrait.style.borderStyle='solid';
-      portrait.style.borderColor='var(--gold)';
+      if(portrait){
+        portrait.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px">';
+        portrait.style.borderStyle='solid';
+        portrait.style.borderColor='var(--gold)';
+      }
     }
   }catch(e){
     console.error('加载角色图片失败:',e);
+  }
+}
+
+let userEditMode = false;
+async function loadUserProfile(){
+  try{
+    const data=await api('/api/user-profile');
+    const name=(data.userName||'').trim()||'User';
+    const bio=(data.userBio||'').trim();
+    const nameEl=$('userNameDisplay');
+    const bioEl=$('userBioDisplay');
+    const avatarEl=$('userAvatar');
+    if(nameEl) nameEl.textContent=name;
+    if(bioEl) bioEl.textContent=bio;
+    if(avatarEl){
+      const initial=name? name[0].toUpperCase() : 'U';
+      avatarEl.textContent=initial;
+    }
+    if($('editUserName')) $('editUserName').value=name;
+    if($('editUserBio')) $('editUserBio').value=bio;
+  }catch(e){
+    console.error('加载用户信息失败:',e);
+  }
+}
+function toggleUserEdit(){
+  userEditMode=!userEditMode;
+  const view=$('userViewMode');
+  const edit=$('userEditMode');
+  const btn=$('editUserBtn');
+  if(!view||!edit||!btn) return;
+  if(userEditMode){
+    view.classList.add('hidden');
+    edit.classList.remove('hidden');
+    btn.textContent='取消';
+    loadUserProfile();
+    setTimeout(()=>{const el=$('editUserName'); if(el) el.focus();},50);
+  }else{
+    view.classList.remove('hidden');
+    edit.classList.add('hidden');
+    btn.textContent='编辑';
+  }
+}
+async function saveUserProfile(){
+  const name=($('editUserName')?.value||'').trim();
+  const bio=($('editUserBio')?.value||'').trim();
+  try{
+    const data=await api('/api/user-profile',{method:'POST',body:JSON.stringify({userName:name,userBio:bio})});
+    await loadUserProfile();
+    toggleUserEdit();
+    toast('用户信息已保存');
+  }catch(e){
+    console.error('保存用户信息失败:',e);
+    toast('保存失败');
+  }
+}
+async function handleUserAvatar(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    const base64=e.target.result;
+    try{
+      await api('/api/user-avatar',{method:'POST',body:JSON.stringify({base64})});
+      await loadUserAvatar();
+      toast('头像已更新');
+    }catch(err){
+      console.error('上传头像失败:',err);
+      toast('上传失败');
+    }
+  };
+  reader.readAsDataURL(file);
+  event.target.value='';
+}
+async function loadUserAvatar(){
+  try{
+    const response=await fetch('/api/user-avatar');
+    if(response.ok){
+      const blob=await response.blob();
+      const url=URL.createObjectURL(blob);
+      const avatar=$('userAvatar');
+      if(avatar){
+        avatar.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;border-radius:8px;display:block">';
+      }
+    }
+  }catch(e){
+    console.error('加载用户头像失败:',e);
   }
 }
 
@@ -977,19 +1362,65 @@ function renderRelationSuggestions(suggestions){
   }
   container.innerHTML = suggestions.map(s => `
     <div class="suggestion-item">
+      <div class="relation-avatar" style="width:28px;height:28px;font-size:10px">${esc((s.name||'')[0]||'?')}</div>
       <div class="suggestion-info">
-        <div class="suggestion-name">${esc(s.name||'')}</div>
-        <div class="suggestion-desc">${esc(s.relation||'新角色')}</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="suggestion-name" style="font-size:11px">${esc(s.name||'')}</div>
+          <span class="relation-badge" style="font-size:9px;padding:1px 5px">${esc(s.relation||'新角色')}</span>
+        </div>
+        <div class="suggestion-desc" style="font-size:10px">${esc(s.desc||s.relation||'新角色')}</div>
       </div>
-      <button class="suggestion-btn" onclick="addSuggestion('${escAttr(s.name)}', '${escAttr(s.relation||'新角色')}')">添加</button>
+      <button class="suggestion-btn" onclick='openRelationConfirm(${JSON.stringify(JSON.stringify({name:s.name, relation:s.relation||'新角色', desc:s.desc||s.relation||'新角色', favor:0}))})'>添加</button>
     </div>
   `).join('');
 }
 
-async function addSuggestion(name, relation){
+let relationConfirmData = null;
+function openRelationConfirm(data){
+  try{
+    relationConfirmData = typeof data === 'string' ? JSON.parse(data) : data;
+  }catch(e){
+    relationConfirmData = {name:String(data||''), relation:'新角色', desc:'新角色', favor:0};
+  }
+  const name = relationConfirmData.name || '';
+  const relation = relationConfirmData.relation || '新角色';
+  const desc = relationConfirmData.desc || relation;
+  const favor = Number(relationConfirmData.favor || 0);
+  
+  const avatar = $('confirmAvatar');
+  const nameEl = $('confirmName');
+  const badge = $('confirmBadge');
+  const favorEl = $('confirmFavor');
+  const descEl = $('confirmDesc');
+  
+  if(avatar) avatar.textContent = name ? name[0] : '?';
+  if(nameEl) nameEl.textContent = name;
+  if(badge) badge.textContent = relation;
+  if(favorEl) favorEl.innerHTML = `&#10084; ${favor} 好感`;
+  if(descEl) descEl.textContent = desc;
+  
+  const modal = $('relationConfirmModal');
+  const backdrop = $('relationConfirmBackdrop');
+  if(modal){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); }
+  if(backdrop) backdrop.classList.add('open');
+}
+function closeRelationConfirm(){
+  const modal = $('relationConfirmModal');
+  const backdrop = $('relationConfirmBackdrop');
+  if(modal){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
+  if(backdrop) backdrop.classList.remove('open');
+  relationConfirmData = null;
+}
+async function confirmAddRelation(){
+  if(!relationConfirmData) return;
+  const name = relationConfirmData.name;
+  const relation = relationConfirmData.relation || '新角色';
+  const desc = relationConfirmData.desc || relation;
+  const favor = Number(relationConfirmData.favor || 0);
+  
   try{
     await api('/api/relations/add',{method:'POST',body:JSON.stringify({
-      name, relation: relation||'新角色', favor:0,
+      name, relation: desc||relation, favor,
     })});
     toast(`已添加 ${name} 到人脉`);
     await loadRelations();
@@ -997,6 +1428,76 @@ async function addSuggestion(name, relation){
   }catch(e){
     console.error('添加人脉失败:', e);
     toast('添加失败');
+  }
+  closeRelationConfirm();
+}
+function rejectRelation(){
+  closeRelationConfirm();
+}
+
+let currentEditRelationId = null;
+function openRelationEdit(relationData){
+  try{
+    const data = typeof relationData === 'string' ? JSON.parse(relationData) : relationData;
+    currentEditRelationId = data.id || '';
+    const name = $('editRelationName');
+    const desc = $('editRelationDesc');
+    const favor = $('editRelationFavor');
+    if(name) name.value = data.name || '';
+    if(desc) desc.value = data.relation || data.desc || '';
+    if(favor) favor.value = String(data.favor || 0);
+    
+    const modal = $('relationEditModal');
+    const backdrop = $('relationEditBackdrop');
+    if(modal){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); }
+    if(backdrop) backdrop.classList.add('open');
+    setTimeout(()=>name && name.focus(),100);
+  }catch(e){
+    console.error('打开编辑弹窗失败:', e);
+  }
+}
+function closeRelationEdit(){
+  const modal = $('relationEditModal');
+  const backdrop = $('relationEditBackdrop');
+  if(modal){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
+  if(backdrop) backdrop.classList.remove('open');
+  currentEditRelationId = null;
+}
+async function saveRelationEdit(){
+  if(!currentEditRelationId) return;
+  const name = $('editRelationName').value.trim();
+  if(!name){ toast('请输入角色名'); return; }
+  try{
+    await api('/api/relations/update',{method:'POST',body:JSON.stringify({
+      id: currentEditRelationId,
+      name: name,
+      relation: $('editRelationDesc').value.trim(),
+      favor: Number($('editRelationFavor').value || 0),
+    })});
+    toast('人脉信息已更新');
+    closeRelationEdit();
+    await loadRelations();
+    await loadRelationSuggestions();
+  }catch(e){
+    console.error('保存人脉失败:', e);
+    toast('保存失败');
+  }
+}
+async function deleteRelation(){
+  if(!currentEditRelationId) return;
+  const name = $('editRelationName').value.trim();
+  if(!confirm(`确定删除人脉「${name}」吗？`)) return;
+  try{
+    await api('/api/relations/remove',{method:'POST',body:JSON.stringify({
+      id: currentEditRelationId,
+    })});
+    toast(`已删除 ${name}`);
+    closeRelationEdit();
+    await loadRelations();
+    await loadRelationSuggestions();
+  }catch(e){
+    console.error('删除人脉失败:', e);
+    toast('删除失败');
   }
 }
 
@@ -1010,7 +1511,7 @@ function renderRelations(relations){
     return;
   }
   container.innerHTML=relations.map(r=>`
-    <div class="relation">
+    <div class="relation" onclick='openRelationEdit(${JSON.stringify(JSON.stringify({id:r.id, name:r.name, relation:r.relation||'', desc:r.desc||r.relation||'', favor:r.favor||0, avatar:r.avatar||(r.name?r.name[0]:'?')}))})' style="cursor:pointer" title="点击编辑">
       <div class="relation-avatar">${esc(r.avatar||r.name?.[0]||'?')}</div>
       <div class="relation-info">
         <div class="relation-name">${esc(r.name)}</div>
@@ -1048,6 +1549,89 @@ async function submitRelation(){
   await loadRelations();
 }
 
+// ---- 目标 ----
+async function loadGoals(){
+  try{
+    const data=await api('/api/goals');
+    renderGoals(data.goals||[]);
+  }catch(e){ console.error('加载目标失败:',e); }
+}
+function renderGoals(goals){
+  const container=$('goals');
+  const count=$('goalCount');
+  if(!container) return;
+  count.textContent=String(goals.length);
+  if(!goals.length){
+    container.innerHTML='<div class="empty" style="padding:16px">暂无目标</div>';
+    return;
+  }
+  container.innerHTML=goals.map(g=>{
+    const p=Math.max(0,Math.min(100,Number(g.progress)||0));
+    return `<div style="padding:4px 0">
+      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">${esc(g.title||'未命名目标')}</div>
+      <div class="progress">
+        <div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div>
+        <span class="progress-text">${p}%</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ---- 关键事件 ----
+async function loadEvents(){
+  try{
+    const data=await api('/api/events');
+    renderEvents(data.events||[]);
+  }catch(e){ console.error('加载事件失败:',e); }
+}
+function renderEvents(events){
+  const container=$('events');
+  const count=$('eventCount');
+  if(!container) return;
+  count.textContent=String(events.length);
+  if(!events.length){
+    container.innerHTML='<div class="empty" style="padding:16px">暂无事件</div>';
+    return;
+  }
+  container.innerHTML=events.map(e=>`
+    <div class="event-row">
+      <div class="event-round">${esc(String(e.round??''))}</div>
+      <div class="event-content">
+        <div class="event-title">${esc(e.title||'未命名事件')}</div>
+        <div class="event-desc">${esc(e.desc||'')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ---- 资产 ----
+async function loadAssets(){
+  try{
+    const data=await api('/api/assets');
+    renderAssets(data.assets||[], data.totalCapacity||50);
+  }catch(e){ console.error('加载资产失败:',e); }
+}
+function renderAssets(assets, capacity){
+  const container=$('assets');
+  const count=$('assetCount');
+  if(!container) return;
+  const cap=Number(capacity)||50;
+  count.textContent=String(assets.length)+'/'+String(cap);
+  if(!assets.length){
+    container.innerHTML='<div class="empty" style="padding:16px">暂无资产</div>';
+    return;
+  }
+  container.innerHTML=assets.map(a=>`
+    <div class="asset-item">
+      <div class="asset-icon">${esc(a.icon||'📦')}</div>
+      <div class="asset-info">
+        <div class="asset-name">${esc(a.name||'未命名')}</div>
+        <div class="asset-desc">${esc(a.desc||'')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
 
 async function boot(){
   await loadHealth();
@@ -1056,76 +1640,164 @@ async function boot(){
   await loadOpenings();
   await loadSettings();
   await loadCharacterImage();
-  await loadContent(true);
-  await loadContext();
-  await loadRelations();
-  await loadRelationSuggestions();
-  initSelection();
-  setStatus('待机');
-}
-function initSelection(){
-  const chat=$('chat');
-  const popup=$('selectionPopup');
-  const btn=$('selectionAddBtn');
-  if(!chat||!popup||!btn) return;
-
-  chat.addEventListener('mouseup',()=>{
-    setTimeout(()=>{
-      const sel=window.getSelection();
-      const text=sel.toString().trim();
-      if(!text){
-        popup.style.display='none';
-        return;
-      }
-      const range=sel.getRangeAt(0);
-      if(!chat.contains(range.commonAncestorContainer)) return;
-      const rect=range.getBoundingClientRect();
-      const containerRect=chat.closest('.container').getBoundingClientRect();
-      popup.style.display='flex';
-      popup.style.left=(rect.left-containerRect.left)+'px';
-      popup.style.top=(rect.top-containerRect.top-36)+'px';
-      btn.dataset.text=text;
-    },10);
-  });
-
-  document.addEventListener('mousedown',(e)=>{
-    if(!popup.contains(e.target)){
-      popup.style.display='none';
-    }
-  });
-
-  btn.addEventListener('click',()=>{
-    const text=btn.dataset.text||'';
-    const input=$('input');
-    if(input && text){
-      const prefix=input.value.trim();
-      input.value=prefix?(prefix+'\n'+text):text;
-      input.focus();
-    }
-    popup.style.display='none';
-    window.getSelection().removeAllRanges();
-  });
-}
-
-async function boot(){
-  await loadHealth();
-  await loadCards();
-  await loadCard();
-  await loadOpenings();
-  await loadSettings();
-  await loadCharacterImage();
+  await loadUserProfile();
+  await loadUserAvatar();
   await loadContent(true);
   await loadContext();
   await loadSessionState();
   await loadRelations();
+  await loadRelationSuggestions();
+  await loadGoals();
+  await loadEvents();
+  await loadAssets();
   initSelection();
   setStatus('待机');
 }
+
+// ---- 消息更多菜单 ----
+function toggleMsgMenu(menuId, event) {
+  event.stopPropagation();
+  const menu = document.getElementById(menuId);
+  if (!menu) return;
+  document.querySelectorAll('.msg-menu.open').forEach(m => {
+    if (m !== menu) m.classList.remove('open');
+  });
+  menu.classList.toggle('open');
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.msg-menu') && !e.target.closest('.msg-more')) {
+    document.querySelectorAll('.msg-menu.open').forEach(m => m.classList.remove('open'));
+  }
+});
+
+async function handleMsgAction(menuId, action) {
+  const row = document.getElementById(menuId)?.closest('.msg-row');
+  const msgId = row?.dataset?.msgId;
+  if (!msgId) { toast('未找到消息 ID'); return; }
+
+  try {
+    switch (action) {
+      case 'reroll': {
+        waiting = true;
+        $('sendBtn').disabled = true;
+        $('sendBtn').textContent = '■';
+        setStatus('重新生成中...');
+        await api('/api/reroll', { method: 'POST', body: '{}' });
+        pollReply();
+        break;
+      }
+      case 'rollback': {
+        const fromIndex = prompt('回滚到第几条消息？（输入索引，0=全部清空）');
+        if (fromIndex === null) break;
+        const idx = Math.max(0, parseInt(fromIndex, 10) || 0);
+        await api('/api/rollback', { method: 'POST', body: JSON.stringify({ fromIndex: idx }) });
+        toast('已回滚');
+        await loadContent(true);
+        break;
+      }
+      case 'backup': {
+        await api('/api/message/backup', { method: 'POST', body: '{}' });
+        toast('对话已备份');
+        break;
+      }
+      case 'edit': {
+        const content = row?.querySelector('.msg')?.innerText || '';
+        const newText = prompt('编辑消息:', content);
+        if (newText === null) break;
+        await api('/api/message/edit', { method: 'POST', body: JSON.stringify({ id: msgId, content: newText }) });
+        toast('消息已更新');
+        await loadContent(true);
+        break;
+      }
+      case 'insert': {
+        const text = prompt('插入消息内容:');
+        if (text === null || !text.trim()) break;
+        const input = $('input');
+        if (input) {
+          input.value = text.trim();
+          send();
+        }
+        break;
+      }
+      case 'delete': {
+        if (!confirm('确定删除此消息？')) break;
+        await api('/api/message/delete', { method: 'POST', body: JSON.stringify({ id: msgId }) });
+        toast('消息已删除');
+        await loadContent(true);
+        break;
+      }
+      default:
+        toast('未知操作');
+    }
+  } catch (e) {
+    toast(e.message);
+  } finally {
+    document.querySelectorAll('.msg-menu.open').forEach(m => m.classList.remove('open'));
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.msg-menu button');
+  if (!btn) return;
+  const menu = btn.closest('.msg-menu');
+  if (!menu) return;
+  const action = btn.dataset.action;
+  if (action) handleMsgAction(menu.id, action);
+});
+
+function initSelection(){
+  const popup=$('selectionPopup');
+  const btn=$('selectionAddBtn');
+  const chat=$('chat');
+  if(!popup || !chat) return;
+
+  chat.addEventListener('mouseup', ()=>{
+    const text = window.getSelection().toString().trim();
+    if(!text){ popup.style.display='none'; return; }
+    const range = window.getSelection().getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    popup.style.display = 'flex';
+    popup.style.left = (rect.left + rect.width/2 - 80) + 'px';
+    popup.style.top  = (rect.bottom + window.scrollY + 8) + 'px';
+    btn.onclick = ()=>{
+      const input=$('input');
+      if(input){
+        input.value = input.value ? (input.value + ' ' + text) : text;
+        input.focus();
+      }
+      popup.style.display='none';
+      window.getSelection().removeAllRanges();
+    };
+  });
+
+  document.addEventListener('mousedown', (e)=>{
+    if(!popup.contains(e.target)) popup.style.display='none';
+  });
+}
+
 function initChrome(){
   initResizeHandle();
   if(localStorage.getItem('airp.sideOpen')==='1') openSide();
 }
-setInterval(()=>{if(!waiting)loadContent(false).catch(()=>{});loadQueue();},4000);
+
+// 选项面板点击委托：点选项直接加入输入框
+document.addEventListener('click', (e)=>{
+  const item = e.target.closest('.option-item');
+  if(!item) return;
+  const text = item.dataset.text || '';
+  if(text) addOptionToInput(text, item);
+});
+
+setInterval(()=>{
+  if(!waiting){
+    loadContent(false).catch(()=>{});
+    loadGoals().catch(()=>{});
+    loadEvents().catch(()=>{});
+    loadAssets().catch(()=>{});
+  }
+  loadQueue();
+},4000);
 initChrome();
 boot().catch(e=>setStatus(e.message));
 </script>

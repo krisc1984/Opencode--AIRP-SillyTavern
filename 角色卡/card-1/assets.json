@@ -1,0 +1,11 @@
+{
+  "assets": [
+    {
+      "id": "a1",
+      "icon": "🗝️",
+      "name": "古旧钥匙",
+      "desc": "刻有符文"
+    }
+  ],
+  "totalCapacity": 50
+}

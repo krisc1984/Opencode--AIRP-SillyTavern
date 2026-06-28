@@ -1,0 +1,14 @@
+[
+  {
+    "role": "user",
+    "content": "你好",
+    "timestamp": "2026-06-28T21:15:22",
+    "turn": 0
+  },
+  {
+    "role": "user",
+    "content": "你好",
+    "timestamp": "2026-06-28T21:15:28",
+    "turn": 0
+  }
+]

@@ -21,26 +21,42 @@ from uuid import uuid4
 from airp_context import build_turn_context, finalize_turn_context, get_context_payload, rebuild_context_snapshot
 from card_store import (
     CARDS_DIR,
+    CURRENT_CARD_FILE,
     PROJECT_ROOT,
     add_relation,
     atomic_write_json,
     ensure_worldbook_relations,
+    ensure_card_runtime,
+    get_assets_path,
     get_card_dir,
     get_card_payload,
+    get_chat_log_path,
     get_current_card_name,
+    get_events_path,
     get_generated_map_path,
+    get_goals_path,
     get_openings,
     get_worldbook_payload,
+    list_available_card_ids,
     list_cards,
     list_worldbooks,
+    load_assets,
+    load_events,
+    load_goals,
     load_relations,
     load_relation_suggestions,
+    mtime_iso,
     preview_worldbook_activation,
+    remove_relation,
     safe_read_json,
+    save_assets,
     save_card_fields,
+    save_events,
+    save_goals,
     save_worldbook_entries,
     set_current_card_name,
     switch_opening,
+    update_relation,
 )
 from handler import append_message, build_content_js, build_content_payload, reroll_last, rollback, update_state
 from preset_config import PresetConfigManager
@@ -53,6 +69,7 @@ INPUT_FILE = WEB_ROOT / "web-input.txt"
 PENDING_FILE = WEB_ROOT / ".pending"
 SETTINGS_FILE = WEB_ROOT / "settings.json"
 IMAGE_JOBS_FILE = WEB_ROOT / "image_jobs.json"
+USER_AVATAR_FILE = WEB_ROOT / "user_avatar.png"
 PRESET_CONFIG_FILE = WEB_ROOT / "preset-config.json"
 PRESETS_DIR = WEB_ROOT.parent / "presets"
 DEFAULT_PORT = int(os.environ.get("AIRP_PORT", "8765"))
@@ -67,6 +84,7 @@ DEFAULT_SETTINGS = {
     "backgroundNpc": True,
     "theme": "dark",
     "userName": "User",
+    "userBio": "",
     "pageWidth": 1200,
 }
 
@@ -121,18 +139,39 @@ class Handler(SimpleHTTPRequestHandler):
                 self.json({"ok": True, "context": get_context_payload()})
             elif path == "/api/session-state":
                 self.json({"ok": True, "state": read_session_state()})
+            elif path == "/api/goals":
+                self.json({"ok": True, "goals": load_goals()})
+            elif path == "/api/events":
+                self.json({"ok": True, "events": load_events()})
+            elif path == "/api/assets":
+                assets, capacity = load_assets()
+                self.json({"ok": True, "assets": assets, "totalCapacity": capacity})
             elif path == "/api/character-image":
                 self.handle_character_image()
+            elif path == "/api/resources/cards":
+                self.handle_resources_cards()
+            elif path == "/api/cards/import":
+                self.handle_cards_import()
+            elif path == "/api/cards/delete":
+                self.handle_cards_delete()
             elif path == "/api/relations":
-                card_id = data.get("cardId") if isinstance(data, dict) else None
+                card_id = parse_qs(urlparse(self.path).query).get("cardId", [None])[0]
                 relations = load_relations(card_id)
                 self.json({"ok": True, "relations": relations})
             elif path == "/api/relations/suggestions":
-                card_id = data.get("cardId") if isinstance(data, dict) else None
+                card_id = parse_qs(urlparse(self.path).query).get("cardId", [None])[0]
                 suggestions = load_relation_suggestions(card_id)
                 self.json({"ok": True, "suggestions": suggestions})
+            elif path == "/api/relations/update":
+                self.handle_relation_update(data)
+            elif path == "/api/relations/remove":
+                self.handle_relation_remove(data)
             elif path == "/api/relations/add":
                 self.handle_relation_add(data)
+            elif path == "/api/user-profile":
+                self.json({"ok": True, **self.load_user_profile()})
+            elif path == "/api/user-avatar":
+                self.handle_user_avatar()
             elif path == "/api/presets":
                 self.handle_presets()
             elif path == "/api/presets/scan":
@@ -146,7 +185,17 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
-        data = self.read_json_body()
+        try:
+            if path == "/api/character-image":
+                self.handle_character_image_upload()
+                return
+            if path == "/api/cards/import":
+                self.handle_cards_import()
+                return
+            data = self.read_json_body()
+        except Exception as exc:
+            self.json({"ok": False, "error": str(exc)}, code=400)
+            return
         try:
             if path == "/api/submit":
                 self.handle_submit(data)
@@ -166,9 +215,6 @@ class Handler(SimpleHTTPRequestHandler):
                 if last_user:
                     write_pending(last_user)
                 self.json({"ok": True, "text": last_user})
-            elif path == "/api/rollback":
-                rollback(int(data.get("fromIndex", 0)))
-                self.json({"ok": True})
             elif path == "/api/switch-opening":
                 selected = switch_opening(int(data.get("id", 0)))
                 build_content_js()
@@ -190,6 +236,35 @@ class Handler(SimpleHTTPRequestHandler):
                 self.json({"ok": True, "preview": preview_worldbook_activation(data.get("text", ""), data.get("name", "main"))})
             elif path == "/api/relations/add":
                 self.handle_relation_add(data)
+            elif path == "/api/relations/update":
+                self.handle_relation_update(data)
+            elif path == "/api/relations/remove":
+                self.handle_relation_remove(data)
+            elif path == "/api/goals":
+                save_goals(data.get("goals") or [], data.get("cardId") or get_current_card_name())
+                self.json({"ok": True, "goals": load_goals(data.get("cardId") or get_current_card_name())})
+            elif path == "/api/events":
+                save_events(data.get("events") or [], data.get("cardId") or get_current_card_name())
+                self.json({"ok": True, "events": load_events(data.get("cardId") or get_current_card_name())})
+            elif path == "/api/assets":
+                card_id = data.get("cardId") or get_current_card_name()
+                save_assets(data.get("assets") or [], card_id, int(data.get("totalCapacity", 50) or 50))
+                assets, capacity = load_assets(card_id)
+                self.json({"ok": True, "assets": assets, "totalCapacity": capacity})
+            elif path == "/api/cards/delete":
+                self.handle_cards_delete()
+            elif path == "/api/user-profile":
+                self.handle_user_profile(data)
+            elif path == "/api/user-avatar":
+                self.handle_user_avatar_upload(data)
+            elif path == "/api/rollback":
+                self.handle_rollback(data)
+            elif path == "/api/message/edit":
+                self.handle_message_edit(data)
+            elif path == "/api/message/delete":
+                self.handle_message_delete(data)
+            elif path == "/api/message/backup":
+                self.handle_message_backup(data)
             elif path == "/api/presets/toggle":
                 self.handle_presets_toggle(data)
             elif path == "/api/presets/reorder":
@@ -373,21 +448,53 @@ class Handler(SimpleHTTPRequestHandler):
 
     def handle_character_image(self) -> None:
         card_dir = get_card_dir()
-        image_extensions = ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp']
-        for ext in image_extensions:
-            images = list(card_dir.glob(ext))
-            if images:
-                image_path = images[0]
-                mime = mimetypes.guess_type(str(image_path))[0] or "application/octet-stream"
-                data = image_path.read_bytes()
-                self.send_response(200)
-                self.send_header("Content-Type", mime)
-                self.send_header("Content-Length", str(len(data)))
-                self.send_header("Cache-Control", "public, max-age=3600")
-                self.end_headers()
-                self.wfile.write(data)
+        preferred = card_dir / "avatar.png"
+        if preferred.exists() and preferred.is_file():
+            image_path = preferred
+        else:
+            image_extensions = ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp']
+            image_path = None
+            for ext in image_extensions:
+                images = list(card_dir.glob(ext))
+                if images:
+                    image_path = images[0]
+                    break
+            if not image_path:
+                self.json({"ok": False, "error": "no character image found"}, code=404)
                 return
-        self.json({"ok": False, "error": "no character image found"}, code=404)
+        mime = mimetypes.guess_type(str(image_path))[0] or "application/octet-stream"
+        data = image_path.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", mime)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "public, max-age=3600")
+        self.end_headers()
+        self.wfile.write(data)
+
+    def handle_character_image_upload(self) -> None:
+        try:
+            print("[avatar-upload] upload start")
+            filename, data = self.read_multipart_file("file")
+            print(f"[avatar-upload] filename={filename!r}, bytes={len(data)}")
+        except Exception as exc:
+            print(f"[avatar-upload] parse failed: {exc}")
+            self.json({"ok": False, "error": f"upload parse failed: {exc}"}, code=400)
+            return
+        if not data:
+            print("[avatar-upload] empty file")
+            self.json({"ok": False, "error": "empty file"}, code=400)
+            return
+        card_dir = get_card_dir()
+        card_dir.mkdir(parents=True, exist_ok=True)
+        target = card_dir / "avatar.png"
+        try:
+            target.write_bytes(data)
+            print(f"[avatar-upload] saved to {target}")
+        except Exception as exc:
+            print(f"[avatar-upload] save failed: {exc}")
+            self.json({"ok": False, "error": f"save failed: {exc}"}, code=500)
+            return
+        self.json({"ok": True, "path": str(target)})
 
     def handle_relation_add(self, data: dict) -> None:
         name = str(data.get("name", "")).strip()
@@ -406,6 +513,221 @@ class Handler(SimpleHTTPRequestHandler):
         }, card_id)
         self.json({"ok": True, "relation": item})
 
+    def handle_relation_update(self, data: dict) -> None:
+        relation_id = str(data.get("id", "")).strip()
+        if not relation_id:
+            self.json({"ok": False, "error": "id required"}, code=400)
+            return
+        card_id = data.get("cardId") or get_current_card_name()
+        updates = {k: v for k, v in data.items() if k not in {"id", "cardId"}}
+        updated = update_relation(relation_id, updates, card_id)
+        if not updated:
+            self.json({"ok": False, "error": "relation not found"}, code=404)
+            return
+        self.json({"ok": True, "relation": updated})
+
+    def handle_relation_remove(self, data: dict) -> None:
+        relation_id = str(data.get("id", "")).strip()
+        if not relation_id:
+            self.json({"ok": False, "error": "id required"}, code=400)
+            return
+        card_id = data.get("cardId") or get_current_card_name()
+        ok = remove_relation(relation_id, card_id)
+        if not ok:
+            self.json({"ok": False, "error": "relation not found"}, code=404)
+            return
+        self.json({"ok": True})
+
+    def handle_rollback(self, data: dict) -> None:
+        from handler import rollback
+        from_index = int(data.get("fromIndex", 0) or 0)
+        rollback(from_index)
+        self.json({"ok": True, "fromIndex": from_index})
+
+    def handle_message_edit(self, data: dict) -> None:
+        message_id = str(data.get("id", "")).strip()
+        new_content = str(data.get("content", "")).strip()
+        if not message_id:
+            self.json({"ok": False, "error": "id required"}, code=400)
+            return
+        from handler import edit_message
+        ok = edit_message(message_id, new_content)
+        if not ok:
+            self.json({"ok": False, "error": "message not found"}, code=404)
+            return
+        self.json({"ok": True})
+
+    def handle_message_delete(self, data: dict) -> None:
+        message_id = str(data.get("id", "")).strip()
+        if not message_id:
+            self.json({"ok": False, "error": "id required"}, code=400)
+            return
+        from handler import delete_message
+        ok = delete_message(message_id)
+        if not ok:
+            self.json({"ok": False, "error": "message not found"}, code=404)
+            return
+        self.json({"ok": True})
+
+    def handle_message_backup(self, data: dict) -> None:
+        from handler import backup_messages
+        messages = data.get("messages")
+        if messages:
+            backup_messages(messages)
+        else:
+            backup_messages()
+        self.json({"ok": True})
+
+    def load_user_profile(self) -> dict:
+        settings = load_settings()
+        return {
+            "userName": settings.get("userName", "User"),
+            "userBio": settings.get("userBio", ""),
+            "hasAvatar": USER_AVATAR_FILE.exists(),
+        }
+
+    def handle_user_profile(self, data: dict) -> None:
+        settings = load_settings()
+        if "userName" in data:
+            settings["userName"] = str(data["userName"]).strip()
+        if "userBio" in data:
+            settings["userBio"] = str(data["userBio"]).strip()
+        atomic_write_json(SETTINGS_FILE, settings)
+        rebuild_context_snapshot()
+        self.json({
+            "ok": True,
+            "userName": settings.get("userName", ""),
+            "userBio": settings.get("userBio", ""),
+        })
+
+    def handle_user_avatar(self) -> None:
+        if USER_AVATAR_FILE.exists():
+            mime = mimetypes.guess_type(str(USER_AVATAR_FILE))[0] or "application/octet-stream"
+            data = USER_AVATAR_FILE.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", mime)
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "public, max-age=3600")
+            self.end_headers()
+            self.wfile.write(data)
+        else:
+            self.json({"ok": False, "error": "no avatar"}, code=404)
+
+    def handle_user_avatar_upload(self, data: dict) -> None:
+        import base64
+        base64_data = str(data.get("base64", "")).strip()
+        if not base64_data:
+            self.json({"ok": False, "error": "no data"}, code=400)
+            return
+        if "," in base64_data:
+            base64_data = base64_data.split(",", 1)[1]
+        try:
+            binary = base64.b64decode(base64_data)
+            USER_AVATAR_FILE.write_bytes(binary)
+            self.json({"ok": True})
+        except Exception as exc:
+            self.json({"ok": False, "error": str(exc)}, code=500)
+
+    def handle_resources_cards(self) -> None:
+        params = parse_qs(urlparse(self.path).query)
+        card_id = params.get("cardId", [None])[0]
+        cards = []
+        for cid in list_available_card_ids():
+            try:
+                ensure_card_runtime(cid)
+                payload = get_card_payload(cid)
+                chat = safe_read_json(get_chat_log_path(cid), [])
+                card_dir = get_card_dir(cid)
+                image_path = None
+                for ext in ["*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp"]:
+                    images = list(card_dir.glob(ext))
+                    if images:
+                        image_path = images[0]
+                        break
+                cards.append({
+                    "id": cid,
+                    "name": payload["fields"].get("name") or cid,
+                    "format": payload["format"],
+                    "description": payload["fields"].get("description", ""),
+                    "personality": payload["fields"].get("personality", ""),
+                    "messages": len(chat) if isinstance(chat, list) else 0,
+                    "hasImage": image_path is not None,
+                    "imagePath": image_path.relative_to(PROJECT_ROOT).as_posix() if image_path else None,
+                    "updatedAt": mtime_iso(card_dir / "card.json"),
+                })
+            except Exception as exc:
+                cards.append({"id": cid, "name": cid, "error": str(exc)})
+        active = get_current_card_name()
+        self.json({"ok": True, "current": active, "cards": cards})
+
+    def handle_cards_import(self) -> None:
+        try:
+            files = self.read_multipart_files("file")
+        except Exception as exc:
+            self.json({"ok": False, "error": f"upload parse failed: {exc}"}, code=400)
+            return
+        if not files:
+            self.json({"ok": False, "error": "no files uploaded"}, code=400)
+            return
+        imported = []
+        for filename, data in files:
+            if not data:
+                continue
+            if not filename.lower().endswith(".png"):
+                continue
+            safe_name = re.sub(r'[\\/:*?"<>|]', "_", filename)
+            base_name = Path(safe_name).stem.strip() or "未命名角色卡"
+            card_dir = CARDS_DIR / base_name
+            if card_dir.exists():
+                card_dir = CARDS_DIR / f"{base_name}_{int(datetime.now().timestamp())}"
+            card_dir.mkdir(parents=True, exist_ok=True)
+            target = card_dir / safe_name
+            try:
+                target.write_bytes(data)
+                result = ensure_card_runtime(card_dir.name)
+                imported.append({
+                    "id": card_dir.name,
+                    "name": result.get("cardName") or card_dir.name,
+                    "source": filename,
+                    "worldbookEntries": result.get("worldbookEntries", 0),
+                    "openings": result.get("openings", 0),
+                })
+            except Exception as exc:
+                imported.append({"id": card_dir.name, "name": card_dir.name, "error": str(exc)})
+        if not imported:
+            self.json({"ok": False, "error": "no valid png files imported"}, code=400)
+            return
+        self.json({"ok": True, "imported": imported, "cards": list_cards()})
+
+    def handle_cards_delete(self) -> None:
+        data = self.read_json_body()
+        card_id = str(data.get("id", "")).strip()
+        if not card_id:
+            self.json({"ok": False, "error": "id required"}, code=400)
+            return
+        card_dir = get_card_dir(card_id)
+        if not card_dir.exists():
+            self.json({"ok": False, "error": "card not found"}, code=404)
+            return
+        current = get_current_card_name()
+        import shutil
+        try:
+            shutil.rmtree(card_dir)
+        except Exception as exc:
+            self.json({"ok": False, "error": str(exc)}, code=500)
+            return
+        next_card = None
+        if current == card_id:
+            available = list_available_card_ids()
+            next_card = available[0] if available else None
+            if next_card:
+                set_current_card_name(next_card)
+                build_content_js(next_card)
+                rebuild_context_snapshot()
+            else:
+                CURRENT_CARD_FILE.unlink(missing_ok=True)
+        self.json({"ok": True, "deleted": card_id, "current": next_card, "cards": list_cards()})
+
     def read_json_body(self) -> dict:
         length = int(self.headers.get("Content-Length", "0"))
         if not length:
@@ -415,6 +737,92 @@ class Handler(SimpleHTTPRequestHandler):
             return json.loads(raw)
         except Exception:
             return {"text": raw}
+
+    def read_multipart_file(self, field_name: str = "file"):
+        content_type = self.headers.get("Content-Type", "")
+        if "multipart/form-data" not in content_type:
+            raise ValueError("not multipart")
+        boundary = None
+        for part in content_type.split(";"):
+            part = part.strip()
+            if part.startswith("boundary="):
+                boundary = part.split("=", 1)[1].strip('"')
+                break
+        if not boundary:
+            raise ValueError("no boundary")
+        length = int(self.headers.get("Content-Length", "0"))
+        raw = self.rfile.read(length)
+        boundary_bytes = ("--" + boundary).encode("utf-8")
+        parts = raw.split(b"--" + boundary.encode("utf-8"))
+        for part in parts:
+            headers_body = part.split(b"\r\n\r\n", 1)
+            if len(headers_body) != 2:
+                continue
+            header_lines = headers_body[0].decode("utf-8", errors="replace").split("\r\n")
+            disposition = None
+            for line in header_lines:
+                if line.lower().startswith("content-disposition:"):
+                    disposition = line
+                    break
+            if not disposition:
+                continue
+            if field_name not in disposition:
+                continue
+            body = headers_body[1]
+            if body.endswith(b"\r\n"):
+                body = body[:-2]
+            filename = None
+            match = re.search(r'filename="([^"]+)"', disposition)
+            if match:
+                filename = match.group(1)
+            if not filename:
+                filename = field_name + ".bin"
+            return filename, body
+        raise ValueError("file not found")
+
+    def read_multipart_files(self, field_name: str = "file"):
+        content_type = self.headers.get("Content-Type", "")
+        if "multipart/form-data" not in content_type:
+            raise ValueError("not a multipart request")
+        boundary = None
+        match = re.search(r"boundary=([^;]+)", content_type)
+        if not match:
+            raise ValueError("missing boundary")
+        boundary = match.group(1).strip()
+        if boundary.startswith('"') and boundary.endswith('"'):
+            boundary = boundary[1:-1]
+        length = int(self.headers.get("Content-Length", "0"))
+        if not length:
+            return []
+        raw = self.rfile.read(length)
+        boundary_bytes = boundary.encode("utf-8")
+        parts = raw.split(b"--" + boundary_bytes)
+        results = []
+        for part in parts:
+            headers_body = part.split(b"\r\n\r\n", 1)
+            if len(headers_body) != 2:
+                continue
+            header_lines = headers_body[0].decode("utf-8", errors="replace").split("\r\n")
+            disposition = None
+            for line in header_lines:
+                if line.lower().startswith("content-disposition:"):
+                    disposition = line
+                    break
+            if not disposition:
+                continue
+            if field_name not in disposition:
+                continue
+            body = headers_body[1]
+            if body.endswith(b"\r\n"):
+                body = body[:-2]
+            filename = None
+            match = re.search(r'filename="([^"]+)"', disposition)
+            if match:
+                filename = match.group(1)
+            if not filename:
+                filename = field_name + ".bin"
+            results.append((filename, body))
+        return results
 
     def json(self, data: dict, code: int = 200) -> None:
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
