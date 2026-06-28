@@ -52,9 +52,18 @@ def append_message(role: str, content: str, card_id: str | None = None) -> dict:
     variables = safe_read_json(get_variables_path(card_id), {})
     raw_content = content or ""
     changes = {}
+    relation_suggestions = []
     if role in {"assistant", "ai"}:
         content, variables, changes = process_text(raw_content, variables if isinstance(variables, dict) else {})
         atomic_write_json(get_variables_path(card_id), variables)
+        # Extract relation suggestions from AI output
+        relation_suggestions = extract_relation_suggestions(content)
+        if relation_suggestions:
+            try:
+                from card_store import save_relation_suggestions
+                save_relation_suggestions(relation_suggestions, card_id)
+            except Exception:
+                pass
     entry = {
         "id": uuid4().hex,
         "role": "assistant" if role == "ai" else role,
@@ -211,9 +220,75 @@ def extract_options(text: str) -> list[str]:
 
 
 def format_message(text: str) -> str:
-    escaped = html.escape(text or "")
-    escaped = re.sub(r"\*(.+?)\*", r"<em>\1</em>", escaped)
-    return escaped.replace("\n", "<br>")
+    if not text:
+        return ""
+
+    lines = text.split('\n')
+    parts = []
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        stripped = line.strip()
+        if (
+            stripped.startswith('|')
+            and stripped.endswith('|')
+            and '|' in stripped[1:-1]
+            and index + 1 < len(lines)
+            and re.match(r'^\|[-:]+(?:\|[-:]+)*\|$', lines[index + 1].strip())
+        ):
+            rows = []
+            cells = [cell.strip() for cell in stripped.split('|')[1:-1]]
+            if cells and any(cells):
+                rows.append(
+                    '<tr>'
+                    + ''.join(f'<th>{html.escape(cell)}</th>' for cell in cells)
+                    + '</tr>'
+                )
+                index += 2
+                while index < len(lines):
+                    current = lines[index].strip()
+                    if current.startswith('|') and current.endswith('|') and '|' in current[1:-1]:
+                        cells = [cell.strip() for cell in current.split('|')[1:-1]]
+                        if cells and any(cells):
+                            rows.append(
+                                '<tr>'
+                                + ''.join(f'<td>{html.escape(cell)}</td>' for cell in cells)
+                                + '</tr>'
+                            )
+                            index += 1
+                        else:
+                            break
+                    else:
+                        break
+                parts.append('<table>' + ''.join(rows) + '</table>')
+                continue
+        parts.append(line)
+        index += 1
+
+    text_parts = []
+    buffer = []
+    for part in parts:
+        if part.startswith('<table>'):
+            if buffer:
+                text_parts.append({'type': 'text', 'content': '\n'.join(buffer)})
+                buffer = []
+            text_parts.append({'type': 'table', 'content': part})
+        else:
+            buffer.append(part)
+    if buffer:
+        text_parts.append({'type': 'text', 'content': '\n'.join(buffer)})
+
+    output = []
+    for part in text_parts:
+        if part['type'] == 'table':
+            output.append(part['content'])
+            continue
+        escaped = html.escape(part['content'])
+        escaped = re.sub(r'["\u201c\u201d\u300c\u300d\u300e\u300f](.+?)["\u201c\u201d\u300c\u300d\u300e\u300f]', r'<span class="speaking">\1</span>', escaped)
+        escaped = re.sub(r'【(.+?)】', r'<span class="narrator">\1</span>', escaped)
+        escaped = re.sub(r"\*(.+?)\*", r"<em>\1</em>", escaped)
+        output.append(escaped.replace('\n', '<br>'))
+    return ''.join(output)
 
 
 def format_time(value: str) -> str:
@@ -221,6 +296,26 @@ def format_time(value: str) -> str:
         return datetime.fromisoformat(value).strftime("%H:%M")
     except Exception:
         return ""
+
+
+def extract_relation_suggestions(text: str) -> list[dict]:
+    """Extract relation suggestions from <RelationSuggestions> blocks in AI output."""
+    if not text:
+        return []
+    suggestions = []
+    pattern = re.compile(r'<RelationSuggestions>(.*?)</RelationSuggestions>', re.DOTALL | re.IGNORECASE)
+    for m in pattern.finditer(text):
+        try:
+            raw = m.group(1).strip()
+            names = json.loads(raw)
+            if isinstance(names, list):
+                for name in names:
+                    name = str(name).strip()
+                    if name and 2 <= len(name) <= 10:
+                        suggestions.append({"name": name, "relation": "新角色", "favor": 0, "source": "ai"})
+        except Exception:
+            continue
+    return suggestions[:10]
 
 
 def atomic_text(path: Path, text: str) -> None:

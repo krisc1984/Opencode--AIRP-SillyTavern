@@ -429,6 +429,8 @@ def main():
     for prompt, path in results:
         s = "OK" if path != "FAILED" else "FAIL"
         print(f"  [{s}] {prompt[:60]}... → {path}")
+    if ok == 0:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -6,331 +6,511 @@
 <title>OpenCode AIRP SillyTavern</title>
 <style>
 :root{
-  --bg:#eef0f3;
-  --panel:#fff;
-  --text:#1f2328;
-  --muted:#737b86;
-  --line:#d9dee7;
-  --brand:#1f8f6a;
-  --brand-2:#d9f3e8;
-  --danger:#b42318;
-  --bubble:#fff;
-  --self:#c9f4a7;
-  --shadow:0 12px 36px rgba(31,35,40,.10);
+  --bg:#16110e;
+  --panel:#1f1915;
+  --panel-2:#2a221c;
+  --text:#e8dcc8;
+  --muted:#a89880;
+  --line:#3d3228;
+  --gold:#d4a574;
+  --gold-2:#c49a6c;
+  --brand:#e8b86d;
+  --brand-2:#3d2e1a;
+  --danger:#c45c5c;
+  --bubble:#2a221c;
+  --shadow:0 12px 36px rgba(0,0,0,.35);
   --width:980px;
 }
-[data-theme=dark]{
-  --bg:#14171b;
-  --panel:#1f242b;
-  --text:#edf1f5;
-  --muted:#9aa4b2;
-  --line:#303844;
-  --brand:#42c99a;
-  --brand-2:#17382c;
-  --danger:#ff8a7a;
-  --bubble:#262c34;
-  --self:#135c45;
-  --shadow:none;
-}
-*{box-sizing:border-box}
+*{box-sizing:border-box;margin:0;padding:0}
 body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
+  background:var(--bg);color:var(--text);
   font:14px/1.55 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
-  height:100vh;
-  overflow:hidden;
+  height:100vh;width:100vw;overflow:hidden;
 }
-button,input,select,textarea{font:inherit}
-button{touch-action:manipulation}
-.app{
-  position:relative;
-  height:100vh;
-  width:min(100vw,var(--width));
-  margin:0 auto;
-  display:grid;
-  grid-template-rows:52px minmax(0,1fr) auto auto;
-  border-left:1px solid var(--line);
-  border-right:1px solid var(--line);
-  background:var(--bg);
-}
+button,input,select,textarea{font:inherit;color:inherit}
+button{touch-action:manipulation;cursor:pointer}
 .top{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:0 14px;
-  background:var(--panel);
+  display:flex;align-items:center;gap:12px;
+  padding:14px 20px;
+  background:linear-gradient(180deg, rgba(212,165,116,.08), transparent);
   border-bottom:1px solid var(--line);
-  min-width:0;
+  position:sticky;top:0;z-index:20;
+  backdrop-filter:blur(8px);
 }
-.title{
-  font-weight:700;
-  min-width:0;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{
+  width:28px;height:28px;border-radius:6px;
+  background:linear-gradient(135deg, var(--gold), var(--gold-2));
+  display:flex;align-items:center;justify-content:center;
+  color:#1a1614;font-weight:900;font-size:14px;
 }
-.top select{
-  min-width:150px;
-  max-width:260px;
-  border:1px solid var(--line);
-  border-radius:8px;
-  background:var(--bg);
-  color:var(--text);
-  padding:6px 8px;
-}
-.pill{
-  font-size:12px;
-  color:var(--muted);
-  border:1px solid var(--line);
-  border-radius:999px;
-  padding:3px 8px;
-  white-space:nowrap;
-}
+.brand-text{font-weight:700;font-size:15px;color:var(--gold);letter-spacing:.3px}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:1px}
 .spacer{flex:1}
-.icon{
-  width:34px;
-  height:34px;
-  border:1px solid var(--line);
-  border-radius:8px;
-  background:var(--panel);
-  color:var(--text);
-  cursor:pointer;
+.icon-btn{
+  width:36px;height:36px;border-radius:8px;border:1px solid var(--line);
+  background:var(--panel);color:var(--text);display:inline-flex;align-items:center;justify-content:center;
+  text-decoration:none;transition:all .15s;font-size:13px;
 }
-.icon:hover{border-color:var(--brand)}
-.main{min-height:0;display:grid;grid-template-columns:1fr}
-.chat{
-  padding:18px;
-  overflow:auto;
-  display:flex;
-  flex-direction:column;
+.icon-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--panel-2)}
+.btn{
+  border:1px solid var(--line);background:var(--panel);color:var(--text);
+  border-radius:8px;padding:6px 12px;font-size:12px;display:inline-flex;align-items:center;gap:6px;
+  transition:all .15s;
+}
+.btn:hover{border-color:var(--gold);color:var(--gold);background:var(--panel-2)}
+.btn-primary{
+  border:none;background:linear-gradient(135deg, var(--gold), var(--gold-2));
+  color:#1a1614;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;
+}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.container{
+  width:100%;margin:0;padding:0;
   gap:14px;
+  height:100vh;display:flex;flex-direction:column;
+  position:relative;
+}
+.layout{display:flex;gap:14px;flex:1;min-height:0;width:100%}
+.sidebar{
+  width:240px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;
+  overflow-y:auto;
+}
+.sidebar-right{width:260px}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  box-shadow:var(--shadow);overflow:hidden;
+}
+.card-head{
+  display:flex;align-items:center;gap:8px;
+  padding:12px 16px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(212,165,116,.06), transparent);
+}
+.card-title{font-weight:700;font-size:14px;color:var(--gold);display:flex;align-items:center;gap:8px}
+.card-meta{font-size:12px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.card-body{padding:14px 16px}
+.portrait{
+  width:100%;aspect-ratio:1;border-radius:12px;
+  background:var(--panel-2);border:2px dashed var(--line);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;color:var(--muted);font-size:12px;cursor:pointer;transition:all .15s;
+}
+.portrait:hover{border-color:var(--gold);color:var(--gold)}
+.portrait .plus{font-size:28px;font-weight:300;line-height:1}
+.portrait .name{font-weight:600;color:var(--text)}
+.relation{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+.relation:last-child{border-bottom:none}
+.relation-avatar{
+  width:32px;height:32px;border-radius:8px;background:var(--panel-2);
+  border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:var(--muted);flex-shrink:0;
+}
+.relation-info{flex:1;min-width:0}
+.relation-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.relation-desc{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.relation-badge{
+  font-size:10px;padding:2px 6px;border-radius:4px;
+  background:var(--brand-2);color:var(--gold);border:1px solid rgba(212,165,116,.2);
+  white-space:nowrap;
+}
+.suggestion-item{
+  display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);
+}
+.suggestion-item:last-child{border-bottom:none}
+.suggestion-info{flex:1;min-width:0}
+.suggestion-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.suggestion-desc{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.suggestion-btn{
+  font-size:10px;padding:2px 8px;border-radius:4px;
+  background:linear-gradient(135deg, var(--gold), var(--gold-2));
+  color:#1a1614;border:none;cursor:pointer;white-space:nowrap;
+}
+.suggestion-btn:hover{filter:brightness(1.1)}
+.attr-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:12px}
+.attr-label{color:var(--muted);display:flex;align-items:center;gap:4px}
+.attr-value{color:var(--text);font-weight:500}
+.chat-card{flex:1;min-height:0;display:flex;flex-direction:column}
+.chat-body{
+  flex:1;min-height:0;overflow-y:auto;padding:16px;
+  display:flex;flex-direction:column;gap:14px;
   scroll-behavior:smooth;
 }
 .msg-row{display:flex;gap:10px;align-items:flex-start}
 .msg-row.self{justify-content:flex-end}
 .avatar{
-  width:36px;
-  height:36px;
-  border-radius:8px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:var(--brand-2);
-  color:var(--brand);
-  font-weight:700;
-  border:1px solid var(--line);
-  flex:0 0 auto;
+  width:32px;height:32px;border-radius:8px;
+  display:none;align-items:center;justify-content:center;
+  background:var(--brand-2);color:var(--brand);font-weight:700;
+  border:1px solid var(--line);flex:0 0 auto;font-size:11px;
 }
-.msg-wrap{max-width:min(760px,78%)}
+.msg-wrap{max-width:85%}
 .msg{
-  padding:10px 12px;
-  border-radius:8px;
-  white-space:pre-wrap;
-  overflow-wrap:anywhere;
-  box-shadow:var(--shadow);
-}
-.msg.other{background:var(--bubble)}
-.msg.self{background:var(--self);box-shadow:none}
-.msg-time{font-size:11px;color:var(--muted);margin-top:4px}
-.gen-btn{
-  margin-top:10px;
+  padding:8px 12px;border-radius:10px;
+  white-space:pre-wrap;overflow-wrap:anywhere;
+  background:var(--panel-2);color:var(--text);line-height:1.75;
   border:1px solid var(--line);
+}
+.msg.self{background:var(--brand-2);border-color:rgba(232,184,109,.2)}
+.msg.narrator{color:var(--text);background:var(--panel-2)}
+.msg.speaker{background:rgba(232,184,109,.08);border-color:rgba(232,184,109,.15);color:var(--gold)}
+.msg-time{font-size:10px;color:var(--muted);margin-top:3px;text-align:right}
+.msg table{border-collapse:collapse;width:100%;margin:8px 0;font-size:12px}
+.msg th,.msg td{border:1px solid var(--line);padding:5px 8px;text-align:left;color:var(--text)}
+.msg th{background:var(--panel-2);font-weight:600}
+.msg tr:nth-child(even){background:var(--panel-2)}
+.stat-change{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;
+  background:rgba(232,184,109,.08);color:var(--gold);border:1px solid rgba(232,184,109,.15);
+}
+.actions-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;border-top:1px solid var(--line);
   background:var(--panel);
-  color:var(--brand);
+}
+.actions-bar .btn{font-size:11px;padding:4px 10px}
+.composer{
+  padding:12px;background:var(--panel);border-top:1px solid var(--line);
+}
+.composer-inner{
+  display:flex;gap:8px;align-items:flex-end;
+}
+.composer textarea{
+  flex:1;min-height:44px;max-height:120px;resize:vertical;
+  border:1px solid var(--line);border-radius:10px;
+  background:var(--bg);color:var(--text);padding:10px 12px;
+}
+.composer textarea:focus{outline:none;border-color:var(--gold)}
+.composer-tools{display:flex;gap:6px;align-items:center}
+.primary{
+  border:none;background:linear-gradient(135deg, var(--gold), var(--gold-2));color:#1a1614;
+  border-radius:8px;padding:8px 16px;font-weight:600;font-size:12px;
+}
+.primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.primary:active{transform:translateY(0)}
+.options{display:flex;gap:6px;overflow:auto;padding:6px 14px;flex-wrap:wrap}
+.options button{
+  white-space:nowrap;border:1px solid var(--line);background:var(--panel-2);color:var(--text);
+  border-radius:999px;padding:4px 10px;font-size:11px;cursor:pointer;
+}
+.options button:hover{border-color:var(--gold);color:var(--gold)}
+.empty{padding:24px;color:var(--muted);text-align:center;font-size:13px}
+.hidden{display:none}
+.selection-popup{
+  position:absolute;
+  z-index:50;
+  background:var(--panel);
+  border:1px solid var(--line);
   border-radius:8px;
-  padding:8px 10px;
+  box-shadow:var(--shadow);
+  padding:4px;
+  display:none;
+  gap:4px;
+}
+.selection-popup button{
+  border:1px solid var(--line);
+  background:var(--panel-2);
+  color:var(--text);
+  border-radius:6px;
+  padding:4px 10px;
+  font-size:11px;
   cursor:pointer;
+  white-space:nowrap;
+}
+.selection-popup button:hover{
+  border-color:var(--gold);
+  color:var(--gold);
+}
+.pill{
+  font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;
+  padding:3px 10px;white-space:nowrap;
+}
+.gen-btn{
+  margin-top:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--gold);
+  border-radius:8px;padding:8px 10px;cursor:pointer;font-size:12px;
 }
 .gen-btn.loading{color:var(--muted);cursor:wait}
 .gen-img-wrap{margin-top:10px}
 .gen-img{
-  display:block;
-  max-width:280px;
-  max-height:360px;
-  border-radius:8px;
-  border:1px solid var(--line);
+  display:block;max-width:280px;max-height:360px;border-radius:8px;border:1px solid var(--line);
 }
-.status{
-  padding:7px 14px;
-  background:var(--panel);
-  border-top:1px solid var(--line);
-  color:var(--muted);
+.resize-handle{
+  position:absolute;top:0;right:-5px;bottom:0;width:10px;cursor:ew-resize;z-index:25;
+}
+.resize-handle::after{
+  content:"";position:absolute;top:45%;left:4px;width:2px;height:84px;border-radius:2px;
+  background:var(--line);
+}
+.resize-handle:hover::after,.resizing .resize-handle::after{background:var(--gold)}
+.resizing{user-select:none;cursor:ew-resize}
+.progress{display:flex;align-items:center;gap:8px;padding:4px 0}
+.progress-bar{
+  flex:1;height:6px;border-radius:3px;background:var(--panel-2);overflow:hidden;
+}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg, var(--gold), var(--gold-2))}
+.progress-text{font-size:11px;color:var(--muted);min-width:32px;text-align:right}
+.event-row{
+  display:flex;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);
   font-size:12px;
-  display:flex;
-  gap:10px;
-  align-items:center;
 }
-.composer{
-  padding:10px;
-  background:var(--panel);
-  border-top:1px solid var(--line);
+.event-row:last-child{border-bottom:none}
+.event-round{
+  width:24px;height:24px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:var(--muted);flex-shrink:0;font-weight:600;
 }
-.composer textarea{
-  width:100%;
-  min-height:54px;
-  max-height:150px;
-  resize:vertical;
-  border:1px solid var(--line);
-  border-radius:8px;
-  background:var(--bg);
-  color:var(--text);
-  padding:10px;
+.event-content{flex:1;color:var(--text);line-height:1.5}
+.event-title{font-weight:600;font-size:12px}
+.event-desc{font-size:11px;color:var(--muted);margin-top:2px}
+.asset-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 0;border-bottom:1px solid var(--line);
 }
-.composer-tools{display:flex;align-items:center;gap:8px;margin-top:8px}
-.options{display:flex;gap:8px;overflow:auto;padding-bottom:2px}
-.options button{
-  white-space:nowrap;
-  border:1px solid var(--line);
-  background:var(--panel);
-  color:var(--text);
-  border-radius:999px;
-  padding:6px 10px;
-  cursor:pointer;
+.asset-item:last-child{border-bottom:none}
+.asset-icon{
+  width:36px;height:36px;border-radius:8px;background:var(--panel-2);
+  border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
 }
-.primary{
-  border:none;
-  background:var(--brand);
-  color:white;
-  border-radius:8px;
-  padding:9px 12px;
-  cursor:pointer;
-}
-.secondary{
-  border:1px solid var(--line);
-  background:var(--panel);
-  color:var(--text);
-  border-radius:8px;
-  padding:9px 12px;
-  cursor:pointer;
-}
-.empty{margin:auto;color:var(--muted)}
-.hidden{display:none}
+.asset-info{flex:1;min-width:0}
+.asset-name{font-size:12px;font-weight:600;color:var(--text)}
+.asset-desc{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .backdrop{
-  position:fixed;
-  inset:0;
-  z-index:30;
-  background:rgba(15,18,22,.38);
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .18s ease;
+  position:fixed;inset:0;z-index:30;
+  background:rgba(22,17,14,.3);
+  opacity:0;pointer-events:none;transition:opacity .18s ease;
 }
 .backdrop.open{opacity:1;pointer-events:auto}
 .side{
-  position:fixed;
-  top:0;
-  right:0;
-  z-index:40;
-  width:min(380px,92vw);
-  height:100dvh;
+  position:fixed;top:0;right:0;z-index:40;
+  width:min(380px,92vw);height:100dvh;
   border-left:1px solid var(--line);
-  background:var(--panel);
-  box-shadow:var(--shadow);
-  padding:14px;
-  overflow:auto;
-  transform:translateX(102%);
-  transition:transform .2s ease;
+  background:var(--panel);box-shadow:var(--shadow);
+  padding:14px;overflow:auto;
+  transform:translateX(102%);transition:transform .2s ease;
 }
 .side.open{transform:translateX(0)}
-.side-head{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:12px;
-}
-.side-title{font-size:16px;font-weight:700}
+.side-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.side-title{font-size:16px;font-weight:700;color:var(--gold)}
 .side details{
-  border:1px solid var(--line);
-  border-radius:8px;
-  background:var(--panel);
-  margin-bottom:10px;
-  overflow:hidden;
+  border:1px solid var(--line);border-radius:8px;background:var(--panel-2);
+  margin-bottom:10px;overflow:hidden;
 }
 .side summary{
-  cursor:pointer;
-  padding:10px;
-  font-weight:700;
-  list-style:none;
-  border-bottom:1px solid transparent;
+  cursor:pointer;padding:10px;font-weight:700;list-style:none;
+  border-bottom:1px solid transparent;color:var(--text);
 }
 .side summary::-webkit-details-marker{display:none}
 .side details[open] summary{border-bottom-color:var(--line)}
-.section-body{padding:10px}
+.section-body{padding:14px 16px}
 .field{margin-bottom:10px}
 .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
 .field input,.field select,.field textarea{
-  width:100%;
-  border:1px solid var(--line);
-  border-radius:8px;
-  background:var(--bg);
-  color:var(--text);
-  padding:8px;
+  width:100%;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);color:var(--text);padding:8px;
 }
 .field textarea{min-height:82px;resize:vertical}
-.row{display:flex;gap:8px}
-.row>*{flex:1}
-#context{
-  white-space:pre-wrap;
-  color:var(--muted);
-  font-size:12px;
-  margin:0;
-  max-height:280px;
-  overflow:auto;
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:60;
+  background:var(--panel-2);color:var(--gold);border:1px solid var(--gold);
+  border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;
+  box-shadow:var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;max-width:90vw;
 }
-.resize-handle{
-  position:absolute;
-  top:0;
-  right:-5px;
-  bottom:0;
-  width:10px;
-  cursor:ew-resize;
-  z-index:25;
+.toast.show{opacity:1;pointer-events:auto}
+.toast button{
+  border:1px solid var(--gold);background:var(--panel);color:var(--gold);
+  border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;white-space:nowrap;
 }
-.resize-handle::after{
-  content:"";
-  position:absolute;
-  top:45%;
-  left:4px;
-  width:2px;
-  height:84px;
-  border-radius:2px;
-  background:var(--line);
+.toast button:hover{border-color:var(--gold-2);background:var(--brand-2)}
+@media (max-width:960px){
+  .sidebar{display:none}
+  .sidebar-right{display:none}
 }
-.resize-handle:hover::after,.resizing .resize-handle::after{background:var(--brand)}
-.resizing{user-select:none;cursor:ew-resize}
 @media (max-width:760px){
-  .app{width:100vw;border:0}
-  .top{gap:8px;padding:0 10px}
-  .top select{min-width:110px;max-width:150px}
-  .pill{display:none}
-  .chat{padding:14px 10px}
-  .msg-wrap{max-width:82%}
-  .resize-handle{display:none}
+  .container{padding:10px;width:100vw}
+  .top{padding:10px 14px;gap:8px}
+  .brand-sub{display:none}
+  .chat-body{padding:10px}
+  .msg-wrap{max-width:90%}
+}
+.status-bar{
+  display:flex;align-items:center;gap:10px;padding:6px 14px;font-size:11px;color:var(--muted);
 }
 </style>
 </head>
 <body>
-<div class="app" id="app">
-  <div class="top">
-    <div class="title" id="title">OpenCode AIRP</div>
-    <select id="cardSelect" title="切换角色卡"></select>
-    <span class="pill" id="health">启动中</span>
-    <span class="pill" id="messageCount">0 条消息</span>
-    <span class="spacer"></span>
-    <button class="icon" onclick="reroll()" title="重新生成">↻</button>
-    <button class="icon" onclick="toggleTheme()" title="明暗主题">◐</button>
-    <button class="icon" onclick="toggleSide()" title="角色卡与设置">☰</button>
+<div class="top">
+  <div class="brand">
+    <div class="brand-icon">AIRP</div>
+    <div>
+      <div class="brand-text" id="title">艾尔丹：神座辅佐系统</div>
+      <div class="brand-sub" id="dateTime">1224年04月02日-上午-铁匠铺</div>
+    </div>
   </div>
-  <div class="main">
-    <div class="chat" id="chat"><div class="empty">正在载入...</div></div>
+  <select id="cardSelect" title="切换角色卡"></select>
+  <span class="pill" id="health">启动中</span>
+  <span class="spacer"></span>
+  <a class="icon-btn" href="/preset-manager.html" title="预设管理">&#9881;</a>
+  <button class="icon-btn" onclick="reroll()" title="重新生成">&#8635;</button>
+  <button class="icon-btn" onclick="toggleTheme()" title="明暗主题">&#9714;</button>
+  <button class="icon-btn" onclick="toggleSide()" title="角色卡与设置">&#9776;</button>
+</div>
+
+<div class="container">
+  <div class="layout">
+    <div class="sidebar">
+      <div class="card">
+        <div class="card-body" style="padding:10px">
+          <div class="portrait" id="portrait" onclick="document.getElementById('portraitInput').click()">
+            <div class="plus">+</div>
+            <div class="name" id="portraitName">陆明</div>
+            <div style="font-size:10px;color:var(--muted)">点击上传头像</div>
+            <input type="file" id="portraitInput" accept="image/*" style="display:none" onchange="handlePortrait(event)">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">&#128100; 人脉 <span style="font-size:11px;color:var(--muted)" id="relationCount">0</span></div>
+          <span class="spacer" style="flex:1"></span>
+          <button class="btn" style="font-size:10px;padding:3px 8px" onclick="openRelationModal()">+ 添加</button>
+        </div>
+        <div class="card-body" id="relations">
+          <div class="empty" style="padding:16px">加载中...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">&#128300; AI 建议人脉</div>
+          <span class="spacer" style="flex:1"></span>
+          <button class="btn" style="font-size:10px;padding:3px 8px" onclick="loadRelationSuggestions()">刷新</button>
+        </div>
+        <div class="card-body" id="relationSuggestions">
+          <div class="empty" style="padding:16px">暂无建议</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">&#128100; 属性</div>
+        </div>
+        <div class="card-body" id="attributes">
+          <div class="attr-row"><span class="attr-label">&#9794; 性别</span><span class="attr-value" id="attrGender">男</span></div>
+          <div class="attr-row"><span class="attr-label">&#127757; 种族</span><span class="attr-value" id="attrRace">人类</span></div>
+          <div class="attr-row"><span class="attr-label">&#128100; 身份</span><span class="attr-value" id="attrIdentity">艾尔丹原住民</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="card chat-card">
+        <div class="card-head">
+          <div class="card-title">&#128172; 对话</div>
+          <div class="card-meta" id="chatMeta">加载中...</div>
+        </div>
+        <div class="chat-body" id="chat">
+          <div class="empty">正在载入...</div>
+        </div>
+        <div class="actions-bar" id="actionsBar">
+          <span style="font-size:11px;color:var(--muted)">&#127991; 展开行动选项</span>
+          <span style="font-size:11px;color:var(--gold);font-weight:600" id="actionCount">0</span>
+          <span class="spacer" style="flex:1"></span>
+          <span style="font-size:10px;color:var(--muted)">&#9650;</span>
+        </div>
+        <div class="composer">
+          <div class="options" id="options"></div>
+          <div class="composer-inner">
+            <textarea id="input" placeholder="输入自定义行动..." rows="1"></textarea>
+            <div class="composer-tools">
+              <button class="primary" id="sendBtn" onclick="send()">&#10148;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <span id="status">待机</span>
+        <span class="spacer" style="flex:1"></span>
+        <span id="queue">生图队列: 0</span>
+      </div>
+    </div>
+
+    <div class="sidebar sidebar-right">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">&#127919; 目标 <span style="font-size:11px;color:var(--muted)" id="goalCount">2</span></div>
+        </div>
+        <div class="card-body" id="goals">
+          <div style="padding:4px 0">
+            <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">改写死局</div>
+            <div class="progress">
+              <div class="progress-bar"><div class="progress-fill" style="width:5%"></div></div>
+              <span class="progress-text">5%</span>
+            </div>
+          </div>
+          <div style="padding:4px 0">
+            <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">系统博弈</div>
+            <div class="progress">
+              <div class="progress-bar"><div class="progress-fill" style="width:45%"></div></div>
+              <span class="progress-text">45%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">&#128681; 关键事件 <span style="font-size:11px;color:var(--muted)" id="eventCount">7</span></div>
+          <span class="spacer" style="flex:1"></span>
+          <span style="font-size:10px;color:var(--muted)">&#8505;</span>
+        </div>
+        <div class="card-body" id="events">
+          <div class="event-row">
+            <div class="event-round">7</div>
+            <div class="event-content">
+              <div class="event-title">徽章的线索与警告</div>
+              <div class="event-desc">老约翰辨认出青铜眼睛徽章工艺古老，可能属于隐秘教团...</div>
+            </div>
+          </div>
+          <div class="event-row">
+            <div class="event-round">6</div>
+            <div class="event-content">
+              <div class="event-title">崖边验证与徽章发现</div>
+              <div class="event-desc">在崖边发现了神秘的徽章标记</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">&#128176; 资产 <span style="font-size:11px;color:var(--muted)" id="assetCount">4/50</span></div>
+        </div>
+        <div class="card-body" id="assets">
+          <div class="asset-item">
+            <div class="asset-icon">&#9878;</div>
+            <div class="asset-info">
+              <div class="asset-name">沉铁片</div>
+              <div class="asset-desc">老约翰赠予的深灰色金属片，据产出自极北之...</div>
+            </div>
+          </div>
+          <div class="asset-item">
+            <div class="asset-icon">&#128065;</div>
+            <div class="asset-info">
+              <div class="asset-name">神秘青铜徽章</div>
+              <div class="asset-desc">刻有抽象眼睛图案的古老徽章，瞳孔处镶嵌着失...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="status"><span id="status">待机</span><span class="spacer"></span><span id="queue">生图队列: 0</span></div>
-  <div class="composer">
-    <div class="options" id="options"></div>
-    <textarea id="input" placeholder="输入消息，Enter 发送，Shift+Enter 换行"></textarea>
-    <div class="composer-tools"><span class="spacer"></span><button class="primary" id="sendBtn" onclick="send()">发送</button></div>
+  <div class="resize-handle" id="resizeHandle" title="拖拽调整宽度"></div>
+  <div class="selection-popup" id="selectionPopup">
+    <button id="selectionAddBtn" title="添加到输入框">＋ 添加到对话框</button>
   </div>
-  <div class="resize-handle" id="resizeHandle" title="拖拽调整聊天宽度"></div>
 </div>
 
 <div id="sideBackdrop" class="backdrop" onclick="closeSide()"></div>
@@ -338,7 +518,7 @@ button{touch-action:manipulation}
   <div class="side-head">
     <div class="side-title">角色卡与设置</div>
     <span class="spacer"></span>
-    <button class="icon" onclick="closeSide()" title="关闭">×</button>
+    <button class="icon-btn" onclick="closeSide()" title="关闭">&times;</button>
   </div>
 
   <details open>
@@ -349,7 +529,7 @@ button{touch-action:manipulation}
       <div class="field"><label>描述</label><textarea id="cardDesc"></textarea></div>
       <div class="field"><label>性格</label><textarea id="cardPersonality"></textarea></div>
       <div class="field"><label>场景</label><textarea id="cardScenario"></textarea></div>
-      <div class="row"><button class="primary" onclick="saveCard()">保存角色卡</button><button class="secondary" onclick="loadCard()">重载</button></div>
+      <div class="row"><button class="btn-primary" onclick="saveCard()">保存角色卡</button><button class="btn" onclick="loadCard()">重载</button></div>
     </div>
   </details>
 
@@ -357,7 +537,7 @@ button{touch-action:manipulation}
     <summary>开场白</summary>
     <div class="section-body">
       <div class="field"><label>选择开场</label><select id="openingSelect"></select></div>
-      <button class="secondary" onclick="switchOpening()">应用开场</button>
+      <button class="btn" onclick="switchOpening()">应用开场</button>
     </div>
   </details>
 
@@ -373,23 +553,70 @@ button{touch-action:manipulation}
         <div class="field"><label>字数</label><input id="wordCount" type="number" min="200" max="2000" step="100"></div>
       </div>
       <div class="field"><label>用户名</label><input id="userName"></div>
-      <div class="row"><button class="primary" onclick="saveSettings()">保存设置</button><button class="secondary" onclick="resetChatWidth()">重置宽度</button></div>
+      <div class="row"><button class="btn-primary" onclick="saveSettings()">保存设置</button><button class="btn" onclick="resetChatWidth()">重置宽度</button></div>
     </div>
   </details>
 
   <details>
     <summary>上下文 / 调试</summary>
     <div class="section-body">
-      <button class="secondary" onclick="loadContext()">刷新状态</button>
-      <pre id="context"></pre>
+      <button class="btn" onclick="loadContext()">刷新状态</button>
+      <pre id="context" style="white-space:pre-wrap;color:var(--muted);font-size:12px;margin:8px 0 0;max-height:280px;overflow:auto;"></pre>
     </div>
   </details>
 </aside>
 
+<div class="toast" id="toast"></div>
+
+<div class="backdrop" id="relationBackdrop" onclick="closeRelationModal()"></div>
+<div class="side" id="relationModal" style="width:min(420px,92vw);transform:translateX(102%)" aria-hidden="true">
+  <div class="side-head">
+    <div class="side-title">添加人脉</div>
+    <span class="spacer"></span>
+    <button class="icon-btn" onclick="closeRelationModal()" title="关闭">&times;</button>
+  </div>
+  <div class="section-body">
+    <div class="field">
+      <label>角色名</label>
+      <input id="relationName" placeholder="输入角色名称">
+    </div>
+    <div class="field">
+      <label>关系 / 描述</label>
+      <input id="relationDesc" placeholder="例如：陌生人、盟友、宿敌">
+    </div>
+    <div class="field">
+      <label>好感度</label>
+      <input id="relationFavor" type="number" value="0">
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn-primary" onclick="submitRelation()">添加到人脉</button>
+      <button class="btn" onclick="closeRelationModal()">取消</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const $=id=>document.getElementById(id);
 let waiting=false,lastMessages=-1,currentCard="";
-const WIDTH_MIN=420, WIDTH_MAX=1280, WIDTH_DEFAULT=980;
+const WIDTH_MIN=800, WIDTH_MAX=3000, WIDTH_DEFAULT=window.innerWidth;
+
+function toast(text, buttons){
+  const el=$('toast');
+  el.innerHTML = text;
+  if(buttons && buttons.length){
+    el.innerHTML += ' ' + buttons.map(b => 
+      `<button data-action="${escAttr(b.action)}">${esc(b.label)}</button>`
+    ).join(' ');
+    el.querySelectorAll('button').forEach(btn => {
+      btn.onclick = () => {
+        const action = btn.dataset.action;
+        el.classList.remove('show');
+      };
+    });
+  }
+  el.classList.add('show');
+  if(!buttons) setTimeout(()=>el.classList.remove('show'),2000);
+}
 
 async function api(path,opts){
   const res=await fetch(path,Object.assign({headers:{'Content-Type':'application/json'}},opts||{}));
@@ -417,20 +644,20 @@ function toggleSide(){
 }
 function toggleTheme(){
   document.body.dataset.theme=document.body.dataset.theme==='dark'?'light':'dark';
-  localStorage.setItem('airp.theme',document.body.dataset.theme);
+  localStorage.setItem('airp.presetTheme',document.body.dataset.theme);
   saveSettings({theme:document.body.dataset.theme}).catch(()=>{});
 }
 
 function clamp(value,min,max){return Math.max(min,Math.min(max,value))}
 function setChatWidth(width,persist){
-  const next=clamp(Math.round(width),WIDTH_MIN,WIDTH_MAX);
+  const next=clamp(Math.round(width),window.innerWidth,WIDTH_MAX);
   document.documentElement.style.setProperty('--width',next+'px');
   if(persist){
     localStorage.setItem('airp.chatWidth',String(next));
     saveSettings({pageWidth:next}).catch(()=>{});
   }
 }
-function resetChatWidth(){setChatWidth(WIDTH_DEFAULT,true);setStatus('聊天宽度已重置')}
+function resetChatWidth(){setChatWidth(WIDTH_DEFAULT,true);toast('聊天宽度已重置')}
 function initResizeHandle(){
   const handle=$('resizeHandle');
   let dragging=false;
@@ -485,6 +712,7 @@ async function loadCard(){
   const data=await api('/api/card');
   const f=data.card.fields||{};
   $('title').textContent=f.name||data.card.id||'OpenCode AIRP';
+  $('portraitName').textContent=f.name||'角色';
   $('cardName').value=f.name||'';
   $('cardTags').value=Array.isArray(f.tags)?f.tags.join(', '):(f.tags||'');
   $('cardDesc').value=f.description||'';
@@ -499,7 +727,7 @@ async function saveCard(){
     personality:$('cardPersonality').value,
     scenario:$('cardScenario').value
   }})});
-  setStatus('角色卡已保存');
+  toast('角色卡已保存');
   await loadCards();
   await loadCard();
 }
@@ -511,15 +739,16 @@ async function switchOpening(){
   await api('/api/switch-opening',{method:'POST',body:JSON.stringify({id:$('openingSelect').value})});
   lastMessages=-1;
   await loadContent(true);
-  setStatus('开场白已应用');
+  toast('开场白已应用');
 }
 async function loadSettings(){
   const s=await api('/api/settings');
   for(const id of ['style','nsfw','person','wordCount','userName']){
     if($(id)&&s[id]!=null) $(id).value=s[id];
   }
-  const savedTheme=localStorage.getItem('airp.theme')||s.theme;
+  const savedTheme=localStorage.getItem('airp.presetTheme')||s.theme;
   if(savedTheme) document.body.dataset.theme=savedTheme;
+  else document.body.dataset.theme='light';
   const savedWidth=Number(localStorage.getItem('airp.chatWidth')||s.pageWidth||WIDTH_DEFAULT);
   setChatWidth(savedWidth,false);
 }
@@ -532,13 +761,14 @@ async function saveSettings(extra){
     userName:$('userName').value
   },extra||{});
   await api('/api/settings',{method:'POST',body:JSON.stringify(body)});
-  setStatus('设置已保存');
+  toast('设置已保存');
 }
 async function loadContent(force){
   const data=await api('/api/content?t='+Date.now());
   if(!force && data.messages===lastMessages)return;
   lastMessages=data.messages;
-  $('messageCount').textContent=(data.messages||0)+' 条消息';
+  $('chatMeta').textContent=(data.messages||0)+' 条消息';
+  $('actionCount').textContent=String(data.options?data.options.length:0);
   $('chat').innerHTML=data.html||'<div class="empty">选择角色卡后输入消息开始。</div>';
   $('options').innerHTML=(data.options||[]).map(o=>`<button onclick="pick('${escAttr(o)}')">${esc(o)}</button>`).join('');
   $('chat').scrollTop=$('chat').scrollHeight;
@@ -558,12 +788,25 @@ async function loadContext(){
     $('context').textContent=e.message;
   }
 }
+async function loadSessionState(){
+  try{
+    const data=await api('/api/session-state');
+    const state=data.state||{};
+    const el=$('dateTime');
+    if(!el) return;
+    const parts=[state.scene, state.location].filter(Boolean);
+    el.textContent = parts.length ? parts.join(' - ') : (state.updated_at || '');
+  }catch(e){
+    console.error('加载会话状态失败:',e);
+  }
+}
 async function send(){
   const text=$('input').value.trim();
   if(!text||waiting)return;
   $('input').value='';
   waiting=true;
   $('sendBtn').disabled=true;
+  $('sendBtn').textContent='■';
   setStatus('AI 思考中...');
   try{
     await api('/api/submit',{method:'POST',body:JSON.stringify({text})});
@@ -572,6 +815,7 @@ async function send(){
     setStatus(e.message);
     waiting=false;
     $('sendBtn').disabled=false;
+    $('sendBtn').textContent='发送';
   }
 }
 function pollReply(){
@@ -586,6 +830,7 @@ function pollReply(){
           clearInterval(timer);
           waiting=false;
           $('sendBtn').disabled=false;
+          $('sendBtn').textContent='发送';
           setStatus('待机');
           loadContext();
         }
@@ -594,12 +839,14 @@ function pollReply(){
       clearInterval(timer);
       waiting=false;
       $('sendBtn').disabled=false;
+      $('sendBtn').textContent='发送';
       setStatus(e.message);
     }
     if(tries>240){
       clearInterval(timer);
       waiting=false;
       $('sendBtn').disabled=false;
+      $('sendBtn').textContent='发送';
       setStatus('等待超时');
     }
   },1500);
@@ -607,6 +854,7 @@ function pollReply(){
 async function reroll(){
   waiting=true;
   $('sendBtn').disabled=true;
+  $('sendBtn').textContent='■';
   setStatus('重新生成中...');
   await api('/api/reroll',{method:'POST',body:'{}'});
   pollReply();
@@ -642,7 +890,8 @@ function pollImage(key,jobId,btn){
       btn.classList.remove('loading');
       if(job.status==='done'){
         const wrap=$('img-'+key);
-        if(wrap)wrap.innerHTML=`<img class="gen-img" src="/api/image?path=${job.path}" loading="lazy">`;
+        const bust=(job.finishedAt||job.createdAt||Date.now());
+        if(wrap)wrap.innerHTML=`<img class="gen-img" src="/api/image?path=${job.path}&t=${bust}" loading="lazy">`;
         btn.classList.add('hidden');
         setStatus('图片已生成');
         await loadContent(true);
@@ -669,14 +918,207 @@ async function loadQueue(){
 }
 function esc(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function escAttr(s){return String(s||'').replace(/['\\]/g,'\\$&').replace(/\n/g,' ')}
+function handlePortrait(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const form=new FormData();
+  form.append('file',file);
+  fetch('/api/character-image',{method:'POST',body:form})
+    .then(r=>{if(r.ok)return r.blob();throw new Error('上传失败')})
+    .then(blob=>{
+      const url=URL.createObjectURL(blob);
+      const portrait=$('portrait');
+      portrait.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px">';
+      portrait.style.borderStyle='solid';
+      portrait.style.borderColor='var(--gold)';
+    })
+    .catch(e=>toast(e.message));
+}
+async function loadCharacterImage(){
+  try{
+    const response=await fetch('/api/character-image');
+    if(response.ok){
+      const blob=await response.blob();
+      const url=URL.createObjectURL(blob);
+      const portrait=$('portrait');
+      portrait.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px">';
+      portrait.style.borderStyle='solid';
+      portrait.style.borderColor='var(--gold)';
+    }
+  }catch(e){
+    console.error('加载角色图片失败:',e);
+  }
+}
+
+async function loadRelations(){
+  try{
+    const data=await api('/api/relations');
+    renderRelations(data.relations||[]);
+  }catch(e){
+    console.error('加载人脉失败:',e);
+  }
+}
+
+async function loadRelationSuggestions(){
+  try{
+    const data=await api('/api/relations/suggestions');
+    renderRelationSuggestions(data.suggestions||[]);
+  }catch(e){
+    console.error('加载人脉建议失败:',e);
+  }
+}
+
+function renderRelationSuggestions(suggestions){
+  const container=$('relationSuggestions');
+  if(!container) return;
+  if(!suggestions.length){
+    container.innerHTML='<div class="empty" style="padding:16px">暂无建议</div>';
+    return;
+  }
+  container.innerHTML = suggestions.map(s => `
+    <div class="suggestion-item">
+      <div class="suggestion-info">
+        <div class="suggestion-name">${esc(s.name||'')}</div>
+        <div class="suggestion-desc">${esc(s.relation||'新角色')}</div>
+      </div>
+      <button class="suggestion-btn" onclick="addSuggestion('${escAttr(s.name)}', '${escAttr(s.relation||'新角色')}')">添加</button>
+    </div>
+  `).join('');
+}
+
+async function addSuggestion(name, relation){
+  try{
+    await api('/api/relations/add',{method:'POST',body:JSON.stringify({
+      name, relation: relation||'新角色', favor:0,
+    })});
+    toast(`已添加 ${name} 到人脉`);
+    await loadRelations();
+    await loadRelationSuggestions();
+  }catch(e){
+    console.error('添加人脉失败:', e);
+    toast('添加失败');
+  }
+}
+
+function renderRelations(relations){
+  const container=$('relations');
+  const count=$('relationCount');
+  if(!container) return;
+  count.textContent=String(relations.length);
+  if(!relations.length){
+    container.innerHTML='<div class="empty" style="padding:16px">暂无角色，点击上方添加</div>';
+    return;
+  }
+  container.innerHTML=relations.map(r=>`
+    <div class="relation">
+      <div class="relation-avatar">${esc(r.avatar||r.name?.[0]||'?')}</div>
+      <div class="relation-info">
+        <div class="relation-name">${esc(r.name)}</div>
+        <div class="relation-desc">${esc(r.relation||'')}</div>
+      </div>
+      <span class="relation-badge">${esc(r.relation||'角色')}</span>
+    </div>
+  `).join('');
+}
+
+function openRelationModal(){
+  $('relationModal').classList.add('open');
+  $('relationBackdrop').classList.add('open');
+  $('relationModal').setAttribute('aria-hidden','false');
+  $('relationName').value='';
+  $('relationDesc').value='';
+  $('relationFavor').value='0';
+  setTimeout(()=>$('relationName').focus(),100);
+}
+function closeRelationModal(){
+  $('relationModal').classList.remove('open');
+  $('relationBackdrop').classList.remove('open');
+  $('relationModal').setAttribute('aria-hidden','true');
+}
+async function submitRelation(){
+  const name=$('relationName').value.trim();
+  if(!name){toast('请输入角色名');return;}
+  await api('/api/relations/add',{method:'POST',body:JSON.stringify({
+    name,
+    relation:$('relationDesc').value.trim(),
+    favor:Number($('relationFavor').value||0),
+  })});
+  toast('已添加到人脉');
+  closeRelationModal();
+  await loadRelations();
+}
+
+
 async function boot(){
   await loadHealth();
   await loadCards();
   await loadCard();
   await loadOpenings();
   await loadSettings();
+  await loadCharacterImage();
   await loadContent(true);
   await loadContext();
+  await loadRelations();
+  await loadRelationSuggestions();
+  initSelection();
+  setStatus('待机');
+}
+function initSelection(){
+  const chat=$('chat');
+  const popup=$('selectionPopup');
+  const btn=$('selectionAddBtn');
+  if(!chat||!popup||!btn) return;
+
+  chat.addEventListener('mouseup',()=>{
+    setTimeout(()=>{
+      const sel=window.getSelection();
+      const text=sel.toString().trim();
+      if(!text){
+        popup.style.display='none';
+        return;
+      }
+      const range=sel.getRangeAt(0);
+      if(!chat.contains(range.commonAncestorContainer)) return;
+      const rect=range.getBoundingClientRect();
+      const containerRect=chat.closest('.container').getBoundingClientRect();
+      popup.style.display='flex';
+      popup.style.left=(rect.left-containerRect.left)+'px';
+      popup.style.top=(rect.top-containerRect.top-36)+'px';
+      btn.dataset.text=text;
+    },10);
+  });
+
+  document.addEventListener('mousedown',(e)=>{
+    if(!popup.contains(e.target)){
+      popup.style.display='none';
+    }
+  });
+
+  btn.addEventListener('click',()=>{
+    const text=btn.dataset.text||'';
+    const input=$('input');
+    if(input && text){
+      const prefix=input.value.trim();
+      input.value=prefix?(prefix+'\n'+text):text;
+      input.focus();
+    }
+    popup.style.display='none';
+    window.getSelection().removeAllRanges();
+  });
+}
+
+async function boot(){
+  await loadHealth();
+  await loadCards();
+  await loadCard();
+  await loadOpenings();
+  await loadSettings();
+  await loadCharacterImage();
+  await loadContent(true);
+  await loadContext();
+  await loadSessionState();
+  await loadRelations();
+  initSelection();
   setStatus('待机');
 }
 function initChrome(){

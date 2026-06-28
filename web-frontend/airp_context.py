@@ -3,23 +3,111 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
 from card_store import get_card_dir, get_card_payload, get_current_card_name, safe_read_json
 from handler import load_log
-
+from preset_config import PresetConfigManager
+from preset_scanner import PresetScanner
 
 WEB_ROOT = Path(__file__).resolve().parent
 PROJECT_ROOT = WEB_ROOT.parent
 CONTEXT_FILE = WEB_ROOT / "context-inspect.json"
 SETTINGS_FILE = WEB_ROOT / "settings.json"
 AIRP_ROOT = PROJECT_ROOT / "airp-sillytavern"
+PRESET_CONFIG_FILE = WEB_ROOT / "preset-config.json"
 
 if str(AIRP_ROOT) not in sys.path:
     sys.path.insert(0, str(AIRP_ROOT))
 
 from runtime.match_worldbook import match_worldbook  # noqa: E402
+
+preset_config_manager = PresetConfigManager(PRESET_CONFIG_FILE)
+
+
+def _presets_dir() -> Path:
+    """Return the presets directory, respecting AIRP_PRESETS_DIR env override."""
+    env_dir = os.environ.get("AIRP_PRESETS_DIR")
+    if env_dir:
+        return Path(env_dir)
+    return PROJECT_ROOT / "presets"
+
+
+def _assemble_presets() -> dict[str, list[dict]]:
+    """Scan the presets directory and return enabled entries grouped by preset name.
+
+    Returns an empty dict if the presets directory does not exist or contains no
+    valid preset files.
+    """
+    presets_root = _presets_dir()
+    if not presets_root.is_dir():
+        return {}
+
+    try:
+        scanner = PresetScanner(presets_root)
+        preset_groups = scanner.scan_all()
+    except Exception:
+        return {}
+
+    assembled: dict[str, list[dict]] = {}
+    for group in preset_groups:
+        preset_name = group.name
+        entries: list[dict] = []
+        for entry in group.entries:
+            if not entry.enabled:
+                continue
+            entries.append(
+                {
+                    "id": entry.id,
+                    "name": entry.name,
+                    "role": entry.role,
+                    "content": entry.content,
+                    "injection_position": entry.injection_position,
+                    "injection_depth": entry.injection_depth,
+                    "injection_order": entry.injection_order,
+                    "marker": entry.marker,
+                    "forbid_overrides": entry.forbid_overrides,
+                }
+            )
+        if entries:
+            entries.sort(key=lambda item: item["injection_order"])
+            assembled[preset_name] = entries
+    return assembled
+
+
+def get_active_preset_prompt() -> str:
+    """Build a prompt fragment for the currently active preset.
+
+    Returns an empty string if no preset is active or the active preset has no
+    enabled entries.
+    """
+    cfg = preset_config_manager.load()
+    active_id = cfg.active_preset_id
+    if not active_id:
+        return ""
+
+    assembled = _assemble_presets()
+    entries = assembled.get(active_id, [])
+    if not entries:
+        return ""
+
+    parts = ["[活动预设]"]
+    for entry in entries:
+        role = entry.get("role", "system")
+        name = entry.get("name", "")
+        content = entry.get("content", "")
+        if role == "system":
+            parts.append(f"<系统>{name}: {content}")
+        elif role == "user":
+            parts.append(f"<用户>{name}: {content}")
+        elif role == "assistant":
+            parts.append(f"<助手>{name}: {content}")
+        else:
+            parts.append(f"<{role}>{name}: {content}")
+    parts.append("[/活动预设]")
+    return "\n".join(parts)
 
 
 def ensure_context_file() -> None:
@@ -78,6 +166,7 @@ def build_context(card_id: str, user_message: str) -> dict:
         "history": history,
         "memory": memory,
         "activatedLore": [],
+        "assembledPresets": _assemble_presets(),
         "metadata": {
             "historyTurns": len(history),
             "worldbookMode": "indexed",
@@ -98,6 +187,7 @@ def default_context_payload() -> dict:
         "history": [],
         "memory": {},
         "activatedLore": [],
+        "assembledPresets": {},
         "metadata": {},
     }
 

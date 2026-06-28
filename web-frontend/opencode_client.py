@@ -7,6 +7,7 @@ OpenCode must be started with:
 from __future__ import annotations
 
 import json
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -15,6 +16,13 @@ from pathlib import Path
 
 OC_URL = "http://127.0.0.1:4096"
 DEFAULT_TIMEOUT = 300
+
+# Ensure web-frontend modules are importable when running as a script.
+WEB_ROOT = Path(__file__).resolve().parent
+if str(WEB_ROOT) not in sys.path:
+    sys.path.insert(0, str(WEB_ROOT))
+
+from airp_context import get_active_preset_prompt  # noqa: E402
 
 
 def check_oc_alive() -> bool:
@@ -56,15 +64,46 @@ def send_message(user_text: str, cwd: Path, timeout: int = DEFAULT_TIMEOUT) -> s
 
 
 def build_prompt(user_text: str) -> str:
-    return (
+    preset_block = get_active_preset_prompt()
+    header = (
         "[Web 前端 AIRP 输入]\n"
         "请严格按 AGENTS.md 的 OpenCode AIRP 规则处理这一轮。\n"
         "你需要读取 current-card.txt，使用对应角色卡、memory、variables 和世界书索引。\n"
         "请生成叙事回复；如有画面，保留 [img: english tags]；如需要更新变量，输出 <UpdateVariable> 块。\n"
         "最后把完整回复写入 web-frontend/web-response.txt，并追加到当前角色卡 rp-log.txt。\n\n"
-        "用户输入：\n"
-        f"{user_text}\n"
     )
+    if preset_block:
+        header += f"{preset_block}\n\n"
+    
+    # Add relation suggestion prompt if configured
+    try:
+        import json
+        from pathlib import Path
+        settings_path = Path(__file__).resolve().parent / "settings.json"
+        if settings_path.exists():
+            settings = json.loads(settings_path.read_text(encoding="utf-8", errors="replace"))
+            relation_prompt = settings.get("relationPrompt")
+            if relation_prompt:
+                header += (
+                    "[人脉分析]\n"
+                    f"{relation_prompt}\n"
+                    "如需输出新人脉，请在回复末尾加入 <RelationSuggestions>[\"角色名\", ...]</RelationSuggestions> 块。\n\n"
+                )
+    except Exception:
+        pass
+    
+    header += "用户输入：\n"
+    prompt = f"{header}{user_text}\n"
+    try:
+        log_path = WEB_ROOT / "preset-injection.log"
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(f"--- build_prompt at {__import__('datetime').datetime.now().isoformat()} ---\n")
+            f.write(f"preset_block_len={len(preset_block)}\n")
+            f.write(f"prompt_len={len(prompt)}\n")
+            f.write(preset_block[:500] + ("\n...[truncated]\n" if len(preset_block) > 500 else "\n"))
+    except Exception:
+        pass
+    return prompt
 
 
 def current_rp_log(cwd: Path) -> Path:

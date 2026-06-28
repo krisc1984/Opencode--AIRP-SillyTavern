@@ -54,3 +54,10 @@ current-card.txt
 !角色卡/example-card/card.json
 角色卡/*/worldbooks/*.json
 !角色卡/example-card/worldbooks/main.json
+
+# Local user cards directory
+cards/
+
+# Windows reserved names / junk
+nul
+web-frontend/nul

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -135,6 +136,164 @@ def get_variables_path(card_id: str | None = None) -> Path:
 def get_generated_map_path(card_id: str | None = None) -> Path:
     return get_card_dir(card_id) / "img_generated.json"
 
+
+def get_relations_path(card_id: str | None = None) -> Path:
+    return get_card_dir(card_id) / "relations.json"
+
+
+def load_relations(card_id: str | None = None) -> list[dict]:
+    data = read_json(get_relations_path(card_id), {"relations": []})
+    relations = data.get("relations", []) if isinstance(data, dict) else []
+    return [r for r in relations if isinstance(r, dict)]
+
+
+def save_relations(relations: list[dict], card_id: str | None = None) -> None:
+    atomic_json(get_relations_path(card_id), {"relations": relations})
+
+
+def add_relation(relation: dict, card_id: str | None = None) -> dict:
+    relations = load_relations(card_id)
+    relation.setdefault("id", __import__("uuid").uuid4().hex)
+    relation.setdefault("addedAt", datetime.now().isoformat(timespec="seconds"))
+    relation.setdefault("source", "manual")
+    relations.append(relation)
+    save_relations(relations, card_id)
+    return relation
+
+
+def extract_character_relations_from_worldbook(card_id: str | None = None) -> list[dict]:
+    """Extract character names from worldbook entries as initial relations."""
+    relations = []
+    seen = set()
+    try:
+        worldbooks = list_worldbooks(card_id)
+        for wb in worldbooks:
+            payload = get_worldbook_payload(wb["id"], card_id)
+            for entry in payload.get("entries", []):
+                title = entry.get("title", "") or entry.get("comment", "") or ""
+                content = entry.get("content", "") or ""
+                
+                # Try to find actual character name from content first
+                name = None
+                name_match = re.search(r'[-•]\s*(?:姓名|名字)[：:]\s*([^\n]+)', content)
+                if name_match:
+                    name = name_match.group(1).strip()
+                
+                # Fallback: extract from title
+                if not name and title:
+                    if " — " in title:
+                        name = title.split(" — ")[0].strip()
+                    elif " - " in title:
+                        name = title.split(" - ")[0].strip()
+                    elif "：" in title or ":" in title:
+                        parts = re.split(r"[:：]", title, maxsplit=1)
+                        name = parts[0].strip()
+                
+                if not name or len(name) > 20 or name in seen:
+                    continue
+                seen.add(name)
+                
+                # Extract relation description from content first (occupation/role), then title
+                relation_desc = ""
+                # Priority 1: occupation/role from content (skip name line since we already extracted it)
+                for line in content.split("\n")[:20]:
+                    line = line.strip()
+                    if line.startswith("- ") or line.startswith("• "):
+                        bullet = line[2:].strip()
+                        # Skip the name line (already extracted above)
+                        if re.match(r'^(?:姓名|名字)[：:]', bullet):
+                            continue
+                        # Only accept lines that describe a role/occupation
+                        if any(kw in bullet for kw in ["职业", "身份", "工作", "称号", "关系", "职位", "头衔", "角色"]):
+                            # Strip the prefix keyword
+                            relation_desc = re.sub(r'^(?:职业|身份|工作|称号|关系|职位|头衔|角色)[：:]\s*', '', bullet)
+                            break
+                
+                # Priority 2: subtitle from title (e.g., "Name — subtitle")
+                if not relation_desc:
+                    if " — " in title:
+                        relation_desc = title.split(" — ", 1)[1].strip()
+                    elif " - " in title:
+                        relation_desc = title.split(" - ", 1)[1].strip()
+                    elif "：" in title or ":" in title:
+                        parts = re.split(r"[:：]", title, maxsplit=1)
+                        if len(parts) > 1:
+                            relation_desc = parts[1].strip()
+                
+                relations.append({
+                    "name": name,
+                    "relation": relation_desc or "世界书角色",
+                    "favor": 0,
+                    "avatar": name[0] if name else "?",
+                    "source": "worldbook",
+                })
+    except Exception:
+        pass
+    return relations
+
+
+def ensure_worldbook_relations(card_id: str | None = None) -> list[dict]:
+    """Load relations; if empty, seed from worldbook."""
+    relations = load_relations(card_id)
+    if not relations:
+        relations = extract_character_relations_from_worldbook(card_id)
+        if relations:
+            save_relations(relations, card_id)
+    return relations
+
+
+def get_relation_suggestions_path(card_id: str | None = None) -> Path:
+    return get_card_dir(card_id) / "relation_suggestions.json"
+
+
+def load_relation_suggestions(card_id: str | None = None) -> list[dict]:
+    data = read_json(get_relation_suggestions_path(card_id), [])
+    return [item for item in data if isinstance(item, dict)]
+
+
+def save_relation_suggestions(suggestions: list[dict], card_id: str | None = None) -> None:
+    atomic_json(get_relation_suggestions_path(card_id), suggestions)
+
+
+def suggest_relations_from_text(text: str, card_id: str | None = None) -> list[dict]:
+    """Extract potential new character names from AI reply text."""
+    if not text:
+        return []
+    relations = load_relations(card_id)
+    known = {r.get("name", "") for r in relations if isinstance(r, dict)}
+    candidates: list[dict] = []
+    seen = set()
+
+    # 1. Bracketed labels 【Name：】or 「Name：」
+    for m in re.finditer(r'[【「]([^【」\s]{1,8})[：:]', text):
+        name = m.group(1).strip()
+        name = re.sub(r'[A-Za-z0-9]+$', '', name).strip()
+        if 2 <= len(name) <= 8 and name not in known and name not in seen:
+            seen.add(name)
+            candidates.append({"name": name, "relation": "新角色", "favor": 0, "source": "suggested"})
+
+    # 2. Tips section - name at start of tips
+    tips_match = re.search(r'Tips:\s*([\u4e00-\u9fa5]{2,10})', text)
+    if tips_match:
+        name = tips_match.group(1)
+        name = re.split(r'[的地得]', name)[0].strip()
+        if 2 <= len(name) <= 8 and name not in known and name not in seen:
+            seen.add(name)
+            candidates.append({"name": name, "relation": "新角色", "favor": 0, "source": "suggested"})
+
+    # 3. Name + verb patterns at sentence boundaries
+    verbs = ['说','道','问','回答','想','看','望','听见','喊','叫','笑','叹','低语','开口','补充','想起','记得','告诉','转头','抬起头','注意到','发现','明白','知道','意识到','感觉到','认为','觉得','轻声','小声','嘀咕','嘟囔','喃喃','反问','追问','打趣','调侃','笑骂','冷哼','答','回','应','点头','摇','走','站','坐','躺','伏','抬','低','闭','睁','咬','握','攥','松','环','抱','贴','移','扫','瞥','瞪','盯']
+    verb_chars = ''.join(sorted(set(''.join(verbs))))
+    verb_pattern = re.compile(r'(?:[。！？\n]|^)\s*([\u4e00-\u9fa5]{2,6}?)\s*(?:的|地|得)?\s*(?:' + '|'.join(verbs) + ')')
+    for m in verb_pattern.finditer(text):
+        name = m.group(1).strip()
+        name = re.sub(r'[的地得]$', '', name)
+        name = re.sub(r'[' + verb_chars + r']+$', '', name)
+        if 2 <= len(name) <= 8 and name not in known and name not in seen:
+            seen.add(name)
+            candidates.append({"name": name, "relation": "新角色", "favor": 0, "source": "suggested"})
+
+    return candidates[:10]
 
 def list_worldbooks(card_id: str | None = None) -> list[dict]:
     card_dir = get_card_dir(card_id)

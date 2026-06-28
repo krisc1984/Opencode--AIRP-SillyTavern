@@ -2,7 +2,7 @@
 
 ## 核心原则: 标签从原文提取，不是脑补
 
-每轮叙事完成后，回扫正文，从描写中提取视觉要素翻译为 NAI 标签。
+每轮叙事完成后，回扫正文，从描写中提取视觉要素翻译为提示词。
 
 ## 标签提取流程
 
@@ -16,18 +16,42 @@
 - **环境** → 地点/光线/氛围 → `classroom`, `morning light`, `warm atmosphere`
 - **尺度** → 是否有 NSFW → `nsfw`, `sex`
 
-### 第二步: 翻译为英文标签
-将提取的中文描写翻译为英文逗号分隔标签，按优先级排列:
-```
-人数 → 外貌 → 衣着 → 动作 → 表情 → 环境 → 画质
-```
+### 第二步: 组织提示词
+- **NovelAI 后端**: 翻译为英文逗号分隔 tag，按优先级排列
+- **Agnes 后端**: 组织为自然语言描述，使用 `[主体] + [场景/环境] + [风格] + [光照] + [构图] + [质量要求]` 结构
 
 ### 第三步: 输出
 ```
-[img: tag1, tag2, tag3, ...]
+[img: tag1, tag2, tag3, ...]                    # NovelAI / Tag 模式
+[img: A 12-year-old boy looking up at ...]      # Agnes / 自然语言模式
 ```
 
-### 粒度判断 (AI 自行判断)
+### 后端切换
+
+生图后端根据环境变量自动选择:
+- 如果配置了 `AGNES_API_KEY` → 使用 Agnes Image 2.1 Flash
+- 否则 → 使用 NovelAI
+
+### Agnes 后端提示词风格
+Agnes Image 2.1 Flash 更适合自然语言描述，推荐结构:
+```
+[主体] + [场景 / 环境] + [风格] + [光照] + [构图] + [质量要求]
+```
+
+示例:
+```
+日出时分薄雾峡谷上方的发光浮空城市，电影级写实风格，广角构图，丰富的建筑细节，柔和的金色光线，高视觉密度
+```
+
+复杂场景:
+```
+建在悬崖上的大型奇幻港口城市，数百艘小船，层叠的石桥，发光的窗户，远山，多云的日落天空，电影级奇幻写实风格，广角构图，丰富的建筑细节，高视觉密度
+```
+
+### NovelAI 后端提示词风格
+保持原有 Tag 模式或自然语言模式，详见下方 `novelai-gen.md`。
+
+## 粒度判断 (AI 自行判断)
 - **简单场景** (单人肖像/简单动作): 5-8 个标签
 - **复杂场景** (多人互动/NSFW 细节): 10-15 个标签
 - **无人物场景**: 省略人物标签，写 `no humans` 或直接用 `background dataset` 前缀
@@ -188,3 +212,10 @@ python scripts/novelai-generate.py --background -p "sunset over ocean"
 # 列出可用模型
 python scripts/novelai-generate.py --list-models
 ```
+
+## 生成脚本
+
+- NovelAI: `scripts/novelai-generate.py`
+- Agnes: `scripts/agnes-generate.py`
+
+自动选择逻辑在 `web-frontend/server.py` 的 `run_image_job()` 中。
