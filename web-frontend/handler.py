@@ -279,6 +279,7 @@ def build_content_payload(card_id: str | None = None) -> dict:
             continue
 
         segment = {"n": 0}
+        image_buttons = []
 
         def repl(match: re.Match) -> str:
             key = f"{index}_{segment['n']}"
@@ -286,6 +287,10 @@ def build_content_payload(card_id: str | None = None) -> dict:
             tags = match.group(1).strip()
             image_prompts.append({"key": key, "tags": tags, "turn": index})
             rel = generated.get(key)
+            image_buttons.append(
+                f'<button class="gen-btn msg-gen-btn" data-action="genimg" data-key="{html.escape(key)}" data-tags="{html.escape(tags, quote=True)}" '
+                f'onclick="genImgPrompt(this)">生成插图</button>'
+            )
             if rel:
                 encoded = quote(str(rel), safe="/%")
                 return f'<div class="gen-img-wrap" id="img-{key}"><img class="gen-img" src="/api/image?path={html.escape(encoded, quote=True)}" loading="lazy"></div>'
@@ -295,6 +300,14 @@ def build_content_payload(card_id: str | None = None) -> dict:
             )
 
         body = IMG_RE.sub(repl, format_message(content))
+        if not image_buttons:
+            auto_tags = _extract_image_tags(content)
+            auto_key = f"auto_{index}"
+            image_buttons.append(
+                f'<button class="gen-btn msg-gen-btn" data-action="genimg" data-key="{html.escape(auto_key)}" data-tags="{html.escape(auto_tags, quote=True)}" '
+                f'onclick="genImgPrompt(this)">生成插图</button>'
+            )
+        image_menu_buttons = "".join(image_buttons)
         assistant_block = (
             f'<div class="{row_cls}" data-msg-id="{html.escape(entry_id)}">'
             f'<div class="{avatar_cls}">{avatar_label}</div>'
@@ -307,6 +320,7 @@ def build_content_payload(card_id: str | None = None) -> dict:
             f'<button data-action="edit">编辑消息</button>'
             f'<button data-action="insert">插入消息</button>'
             f'<button data-action="delete">删除消息</button>'
+            f'{image_menu_buttons}'
             f'</div>'
             f'<div class="msg-time">{timestamp}</div>'
             f'</div>'
@@ -350,6 +364,16 @@ def update_state(card_id: str | None = None) -> dict:
     }
     atomic_text(STATE_JS, "var STATE = " + json.dumps(state, ensure_ascii=False) + ";\n")
     return state
+
+
+def _extract_image_tags(content: str, max_length: int = 80) -> str:
+    """从消息内容中自动提取插图标签。"""
+    if not content:
+        return "illustration"
+    text = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
+    text = re.sub(r'<[^>]+>', '', text)
+    text = ' '.join(text.split())
+    return text[:max_length] if text else "illustration"
 
 
 def normalize_entries(entries: list[dict]) -> list[dict]:
@@ -495,6 +519,35 @@ def format_time(value: str) -> str:
         return ""
 
 
+def _is_valid_character_name(name: str) -> bool:
+    """Validate that a string looks like an actual person name, not a sentence fragment."""
+    if not name or not (2 <= len(name) <= 6):
+        return False
+    # Reject names starting with sentence-initial particles/pronouns
+    invalid_starts = {'但', '然', '于', '在', '你', '他', '她', '它', '这', '那', '如', '若', '又', '并', '且', '就', '才', '可', '虽', '尽', '我'}
+    if name[0] in invalid_starts:
+        return False
+    # Reject abstract nouns and common words that are not names
+    abstract_nouns = {'朋友', '敌人', '家人', '同学', '老师', '学生', '老板', '员工', '顾客',
+                      '客人', '邻居', '陌生人', '路人', '保安', '服务员', '医生', '护士',
+                      '警察', '记者', '记者', '司机', '业主', '住户'}
+    if name in abstract_nouns:
+        return False
+    # Reject if ends with typical verb/sentence suffixes
+    invalid_ends = {'了', '着', '过', '来', '去', '到', '在', '是', '的', '得', '地', '啊', '呢', '吗', '吧'}
+    if name[-1] in invalid_ends:
+        return False
+    # Reject if contains obvious verb characters in the middle (sentence fragment indicator)
+    common_verbs = {'说', '道', '问', '走', '站', '坐', '看', '想', '听', '叫', '笑', '叹',
+                    '开', '关', '拿', '放', '打', '踢', '跑', '跳', '飞', '爬', '躺', '伏',
+                    '抬', '低', '闭', '睁', '咬', '握', '环', '抱', '贴', '移', '扫', '瞥', '瞪', '盯',
+                    '在', '给', '让', '被', '把', '向', '往', '从', '对', '为', '跟', '比'}
+    for v in common_verbs:
+        if v in name and len(name) <= 6:
+            return False
+    return True
+
+
 def extract_relation_suggestions(text: str) -> list[dict]:
     """Extract relation suggestions from <RelationSuggestions> blocks in AI output."""
     if not text:
@@ -509,12 +562,12 @@ def extract_relation_suggestions(text: str) -> list[dict]:
             if isinstance(data, list):
                 for item in data:
                     if isinstance(item, str):
-                        name = item.strip()
-                        if name and 2 <= len(name) <= 10:
-                            suggestions.append({"name": name, "relation": "新角色", "favor": 0, "desc": "", "source": "ai"})
+                        name = item.strip().strip('"').strip("'")
+                        if _is_valid_character_name(name):
+                            suggestions.append({"name": name, "relation": "新角色", "favor": 0, "source": "ai"})
                     elif isinstance(item, dict):
                         name = str(item.get("name", "")).strip()
-                        if name and 2 <= len(name) <= 10:
+                        if _is_valid_character_name(name):
                             suggestions.append({
                                 "name": name,
                                 "relation": item.get("relation") or "新角色",
@@ -524,13 +577,15 @@ def extract_relation_suggestions(text: str) -> list[dict]:
                             })
         except Exception:
             continue
-    
+
     # Fallback: if no suggestions found from block, try simple name extraction
     if not suggestions:
         suggestions = suggest_relations_from_text(text)
         for s in suggestions:
             s["source"] = "ai"
-    
+        # Apply semantic filter to fallback results too
+        suggestions = [s for s in suggestions if _is_valid_character_name(s.get("name", ""))]
+
     return suggestions[:10]
 
 

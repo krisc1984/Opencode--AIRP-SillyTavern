@@ -7,6 +7,7 @@ OpenCode must be started with:
 from __future__ import annotations
 
 import json
+import re
 import sys
 import time
 import urllib.error
@@ -112,6 +113,13 @@ def build_prompt(user_text: str) -> str:
         "资产总量上限通过 Assets 块中的 totalCapacity 字段指定，如 {\"items\":[...],\"totalCapacity\":50}。\n\n"
     )
     
+    # Image tagging guidance
+    header += (
+        "[插图标签]\n"
+        "当回复中有鲜明画面感时，请在相关描述后附带 [img: english tags] 标签，用于生成插图。\n"
+        "标签只保留英文关键词，不要附加说明文字。\n\n"
+    )
+    
     header += "用户输入：\n"
     prompt = f"{header}{user_text}\n"
     try:
@@ -124,6 +132,36 @@ def build_prompt(user_text: str) -> str:
     except Exception:
         pass
     return prompt
+
+
+def extract_image_tags_from_llm(content: str, timeout: int = 60) -> str:
+    """Use OpenCode to extract concise English image tags from message content."""
+    cwd = WEB_ROOT.parent
+    response_file = cwd / "web-frontend" / "web-response.txt"
+    response_file.unlink(missing_ok=True)
+    prompt = (
+        "[插图标签提取]\n"
+        "请阅读以下内容，提取 1-5 个可用于生成插图的英文关键词。\n"
+        "只输出标签本身，不要解释，不要多余文字。\n"
+        "如果内容没有明显画面感，输出: illustration\n"
+        "请把结果写入 web-frontend/web-response.txt。\n\n"
+        f"{content}"
+    )
+    inject_message(prompt)
+    started = time.time()
+    while time.time() - started <= timeout:
+        if response_file.exists():
+            text = response_file.read_text(encoding="utf-8", errors="replace").strip()
+            if text:
+                response_file.unlink(missing_ok=True)
+                match = re.search(r"\[img:\s*(.+?)\]", text, re.IGNORECASE)
+                if match:
+                    return match.group(1).strip()
+                candidate = text.splitlines()[0].strip() if text.splitlines() else text.strip()
+                candidate = re.sub(r"<think>.*?</think>", "", candidate, flags=re.DOTALL).strip()
+                return candidate[:120] if candidate else "illustration"
+        time.sleep(1.2)
+    return "illustration"
 
 
 def current_rp_log(cwd: Path) -> Path:

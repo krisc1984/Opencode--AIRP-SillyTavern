@@ -70,8 +70,9 @@ def generate_image(
     prompt: str,
     size: str = DEFAULT_SIZE,
     output_dir: str = DEFAULT_OUTPUT_DIR,
+    image: str = "",
 ) -> Optional[Path]:
-    """调用 Agnes Image 2.1 Flash API 生成一张图片。"""
+    """调用 Agnes Image 2.1 Flash API 生成一张图片，支持图生图参考。"""
     api_key = load_api_key()
     if not api_key:
         print("错误: 未设置 AGNES_API_KEY 环境变量", file=sys.stderr)
@@ -79,6 +80,19 @@ def generate_image(
         return None
 
     body = build_t2i_body(prompt, size, return_base64=True)
+
+    # Agnes 图生图：把参考图转为 base64 data URI 放进 prompt
+    if image:
+        ref_path = Path(image)
+        if ref_path.exists() and ref_path.is_file():
+            try:
+                b64 = base64.b64encode(ref_path.read_bytes()).decode("utf-8")
+                mime = mimetypes.guess_type(str(ref_path))[0] or "image/png"
+                data_uri = f"data:{mime};base64,{b64}"
+                body["image"] = data_uri
+                print(f"[Agnes] 图生图参考: {ref_path}")
+            except Exception as exc:
+                print(f"[Agnes] 参考图读取失败: {exc}", file=sys.stderr)
 
     print(f"[Agnes] {MODEL} | {size} | prompt {len(prompt)} chars")
 
@@ -180,6 +194,7 @@ def main():
     p.add_argument("-q", "--queue", help="从 image-queue.txt 读取队列")
     p.add_argument("-o", "--output-dir", default=DEFAULT_OUTPUT_DIR, help="输出目录")
     p.add_argument("-s", "--size", default=DEFAULT_SIZE, help="尺寸 (WxH)")
+    p.add_argument("--image", help="图生图参考图路径 (本地图片文件)")
 
     args = p.parse_args()
 
@@ -210,7 +225,7 @@ def main():
             continue
         if len(prompts) > 1:
             print(f"\n--- [{i}/{len(prompts)}] ---")
-        resp = generate_image(prompt, size=args.size, output_dir=args.output_dir)
+        resp = generate_image(prompt, size=args.size, output_dir=args.output_dir, image=args.image or "")
         results.append((prompt, str(resp.resolve()) if resp else "FAILED"))
         if len(prompts) > 1:
             time.sleep(0.5)

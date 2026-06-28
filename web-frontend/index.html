@@ -276,6 +276,10 @@ button{touch-action:manipulation;cursor:pointer}
   display:flex;align-items:center;gap:8px;width:100%;white-space:nowrap;
 }
 .msg-menu button:hover{background:var(--panel-2);color:var(--gold)}
+.msg-menu .msg-gen-btn{
+  border-top:1px solid var(--line);
+  margin-top:4px;padding-top:6px;
+}
 .msg-wrap{position:relative}
 .msg-row{position:relative}
 .actions-bar{
@@ -822,6 +826,15 @@ button{touch-action:manipulation;cursor:pointer}
         <label>好感度</label>
         <input id="editRelationFavor" type="number" value="0">
       </div>
+      <div class="relation-edit-field" style="margin-top:4px">
+        <label>头像</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div id="relationAvatarPreview" style="width:40px;height:40px;border-radius:8px;background:var(--panel-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;font-weight:700;overflow:hidden;flex-shrink:0">?</div>
+          <label for="relationAvatarInput" class="btn" style="font-size:11px;padding:4px 10px;cursor:pointer;display:inline-flex;align-items:center">上传头像</label>
+          <button class="btn" style="font-size:11px;padding:4px 10px" onclick="clearRelationAvatar()">清除</button>
+        </div>
+        <input type="file" id="relationAvatarInput" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none" onchange="handleRelationAvatar(event)">
+      </div>
     </div>
     <div class="relation-edit-actions">
       <button class="relation-edit-btn relation-edit-btn-cancel" onclick="closeRelationEdit()">取消</button>
@@ -1142,11 +1155,15 @@ $('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.pre
 
 async function genImgPrompt(btn){
   const key=btn.dataset.key,tags=btn.dataset.tags;
+  let relationId=btn.dataset.relationId||'';
+  if(!relationId && currentEditRelationId) relationId=currentEditRelationId;
   btn.disabled=true;
   btn.classList.add('loading');
   btn.textContent='排队中...';
   try{
-    const data=await api('/api/image-gen',{method:'POST',body:JSON.stringify({key,tags})});
+    const body={key,tags};
+    if(relationId) body.relationId=relationId;
+    const data=await api('/api/image-gen',{method:'POST',body:JSON.stringify(body)});
     pollImage(key,data.jobId,btn);
   }catch(e){
     btn.disabled=false;
@@ -1452,6 +1469,7 @@ function openRelationEdit(relationData){
     if(modal){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); }
     if(backdrop) backdrop.classList.add('open');
     setTimeout(()=>name && name.focus(),100);
+    loadRelationAvatarPreview().catch(()=>{});
   }catch(e){
     console.error('打开编辑弹窗失败:', e);
   }
@@ -1461,7 +1479,7 @@ function closeRelationEdit(){
   const backdrop = $('relationEditBackdrop');
   if(modal){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
   if(backdrop) backdrop.classList.remove('open');
-  currentEditRelationId = null;
+  // keep currentEditRelationId so subsequent image-gen can still use this relation's avatar
 }
 async function saveRelationEdit(){
   if(!currentEditRelationId) return;
@@ -1492,6 +1510,7 @@ async function deleteRelation(){
       id: currentEditRelationId,
     })});
     toast(`已删除 ${name}`);
+    currentEditRelationId = null;
     closeRelationEdit();
     await loadRelations();
     await loadRelationSuggestions();
@@ -1499,6 +1518,60 @@ async function deleteRelation(){
     console.error('删除人脉失败:', e);
     toast('删除失败');
   }
+}
+
+async function handleRelationAvatar(event){
+  const file=event.target.files[0];
+  if(!file){
+    toast('请选择图片文件');
+    return;
+  }
+  if(!currentEditRelationId){
+    toast('请先打开人脉编辑');
+    return;
+  }
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    const base64=e.target.result;
+    try{
+      await api('/api/relation-avatar',{method:'POST',body:JSON.stringify({
+        relationId: currentEditRelationId,
+        base64: base64,
+      })});
+      toast('头像已更新');
+      await loadRelationAvatarPreview();
+    }catch(err){
+      console.error('上传人脉头像失败:', err);
+      toast('上传失败：' + (err.message || '未知错误'));
+    }
+  };
+  reader.onerror = function() {
+    toast('读取文件失败');
+  };
+  reader.readAsDataURL(file);
+  event.target.value='';
+}
+async function loadRelationAvatarPreview(){
+  if(!currentEditRelationId) return;
+  const preview=$('relationAvatarPreview');
+  if(!preview) return;
+  try{
+    const res=await fetch(`/api/relation-avatar?id=${encodeURIComponent(currentEditRelationId)}&t=${Date.now()}`);
+    if(!res.ok){ preview.textContent='?'; return; }
+    const blob=await res.blob();
+    const url=URL.createObjectURL(blob);
+    preview.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;display:block">`;
+  }catch(e){
+    preview.textContent='?';
+  }
+}
+function clearRelationAvatar(){
+  if(!currentEditRelationId) return;
+  const preview=$('relationAvatarPreview');
+  if(preview) preview.innerHTML='?';
+  // 前端直接删除头像文件
+  fetch(`/api/relation-avatar?id=${encodeURIComponent(currentEditRelationId)}`, {method:'DELETE'})
+    .catch(()=>{});
 }
 
 function renderRelations(relations){
@@ -1510,16 +1583,20 @@ function renderRelations(relations){
     container.innerHTML='<div class="empty" style="padding:16px">暂无角色，点击上方添加</div>';
     return;
   }
-  container.innerHTML=relations.map(r=>`
+  container.innerHTML=relations.map(r=>{
+    const initial = esc(r.avatar||r.name?.[0]||'?');
+    const avatarImg = r.id ? `<img src="/api/relation-avatar?id=${encodeURIComponent(r.id)}&t=${Date.now()}" onerror="this.parentElement.innerHTML='${initial}'" style="width:100%;height:100%;object-fit:cover;border-radius:8px;display:block">` : initial;
+    return `
     <div class="relation" onclick='openRelationEdit(${JSON.stringify(JSON.stringify({id:r.id, name:r.name, relation:r.relation||'', desc:r.desc||r.relation||'', favor:r.favor||0, avatar:r.avatar||(r.name?r.name[0]:'?')}))})' style="cursor:pointer" title="点击编辑">
-      <div class="relation-avatar">${esc(r.avatar||r.name?.[0]||'?')}</div>
+      <div class="relation-avatar">${avatarImg}</div>
       <div class="relation-info">
         <div class="relation-name">${esc(r.name)}</div>
         <div class="relation-desc">${esc(r.relation||'')}</div>
       </div>
       <span class="relation-badge">${esc(r.relation||'角色')}</span>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function openRelationModal(){
@@ -1725,6 +1802,24 @@ async function handleMsgAction(menuId, action) {
         await api('/api/message/delete', { method: 'POST', body: JSON.stringify({ id: msgId }) });
         toast('消息已删除');
         await loadContent(true);
+        break;
+      }
+      case 'genimg': {
+        const genBtn = row?.querySelector('.msg-gen-btn');
+        if (!genBtn) { toast('未找到插图按钮'); break; }
+        const key = genBtn.dataset.key || '';
+        if (key.startsWith('auto_')) {
+          const content = row?.querySelector('.msg')?.innerText || '';
+          try {
+            const data = await api('/api/image-tags', { method: 'POST', body: JSON.stringify({ content }) });
+            if (data.ok && data.tags) {
+              genBtn.dataset.tags = data.tags;
+            }
+          } catch (e) {
+            toast('提取插图标签失败: ' + e.message);
+          }
+        }
+        genImgPrompt(genBtn);
         break;
       }
       default:

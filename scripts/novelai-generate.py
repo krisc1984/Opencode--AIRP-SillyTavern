@@ -82,11 +82,13 @@ def build_v4_params(prompt: str, negative_prompt: str, params: dict, char_prompt
     - noise_schedule 为 karras (非 native)
     - ucPreset 为 2 (非 0)
     - 支持 char_captions 多人角色
+    - 支持 input_image 图生图参考
     """
     w = params.get("width", 832)
     h = params.get("height", 1216)
+    ref_image = params.get("input_image", "")
 
-    return {
+    result = {
         "params_version": 3,
         "width": w, "height": h,
         "scale": params.get("scale", 3),
@@ -106,7 +108,7 @@ def build_v4_params(prompt: str, negative_prompt: str, params: dict, char_prompt
         "skip_cfg_above_sigma": None,
         "use_coords": True,
         "normalize_reference_strength_multiple": True,
-        "inpaintImg2ImgStrength": 1,
+        "inpaintImg2ImgStrength": params.get("inpaintImg2ImgStrength", 0.35) if ref_image else 1,
         "v4_prompt": {
             "caption": {
                 "base_caption": prompt,
@@ -130,6 +132,9 @@ def build_v4_params(prompt: str, negative_prompt: str, params: dict, char_prompt
         "prefer_brownian": True,
         "image_format": "png",
     }
+    if ref_image:
+        result["input_image"] = ref_image
+    return result
 
 
 def build_v3_params(prompt: str, negative_prompt: str, params: dict) -> dict:
@@ -194,9 +199,10 @@ def generate_image(
     model: str = MODEL,
     output_dir: str = "generated",
     char_prompts: list = None,
+    image: str = "",
     **overrides
 ) -> Optional[Path]:
-    """调用 NovelAI API 生成一张图片。自动按模型选择 V3/V4 参数结构。"""
+    """调用 NovelAI API 生成一张图片。支持图生图参考，自动按模型选择 V3/V4 参数结构。"""
     api_key = load_api_key()
     if not api_key:
         print("错误: 未设置 NOVELAI_API_KEY 环境变量", file=sys.stderr)
@@ -205,6 +211,16 @@ def generate_image(
 
     # 合并覆盖参数
     user_params = {**overrides}
+
+    # 图生图参考图处理
+    ref_image_data = None
+    if image:
+        ref_path = Path(image)
+        if ref_path.exists() and ref_path.is_file():
+            ref_image_data = base64.b64encode(ref_path.read_bytes()).decode("utf-8")
+            user_params["input_image"] = ref_image_data
+            user_params["inpaintImg2ImgStrength"] = 0.35
+            print(f"[NAI] 图生图参考: {ref_path}")
 
     # 根据模型构建不同的参数结构
     if is_v4_model(model):
@@ -340,6 +356,7 @@ def main():
     p.add_argument("--list-models", action="store_true", help="列出所有可用模型")
     p.add_argument("--char", "--char-prompt", dest="char_prompt", action="append", default=None,
                    help="多人角色提示词 (可多次使用, 仅 V4)")
+    p.add_argument("--image", help="图生图参考图路径 (本地图片文件, 作为 img2img 参考)")
 
     args = p.parse_args()
 
@@ -415,6 +432,7 @@ def main():
             negative_prompt=negative, model=model,
             output_dir=args.output_dir,
             char_prompts=char_prompts,
+            image=args.image or "",
             width=width, height=height,
             steps=args.steps, scale=args.scale,
             sampler=args.sampler, seed=args.seed,

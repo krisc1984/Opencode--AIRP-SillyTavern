@@ -59,6 +59,7 @@ from card_store import (
     update_relation,
 )
 from handler import append_message, build_content_js, build_content_payload, reroll_last, rollback, update_state
+from opencode_client import extract_image_tags_from_llm
 from preset_config import PresetConfigManager
 
 
@@ -99,7 +100,7 @@ class Handler(SimpleHTTPRequestHandler):
     def do_OPTIONS(self) -> None:
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
 
@@ -172,6 +173,8 @@ class Handler(SimpleHTTPRequestHandler):
                 self.json({"ok": True, **self.load_user_profile()})
             elif path == "/api/user-avatar":
                 self.handle_user_avatar()
+            elif path == "/api/relation-avatar":
+                self.handle_relation_avatar()
             elif path == "/api/presets":
                 self.handle_presets()
             elif path == "/api/presets/scan":
@@ -257,6 +260,8 @@ class Handler(SimpleHTTPRequestHandler):
                 self.handle_user_profile(data)
             elif path == "/api/user-avatar":
                 self.handle_user_avatar_upload(data)
+            elif path == "/api/relation-avatar":
+                self.handle_relation_avatar_upload(data)
             elif path == "/api/rollback":
                 self.handle_rollback(data)
             elif path == "/api/message/edit":
@@ -265,6 +270,8 @@ class Handler(SimpleHTTPRequestHandler):
                 self.handle_message_delete(data)
             elif path == "/api/message/backup":
                 self.handle_message_backup(data)
+            elif path == "/api/image-tags":
+                self.handle_image_tags(data)
             elif path == "/api/presets/toggle":
                 self.handle_presets_toggle(data)
             elif path == "/api/presets/reorder":
@@ -273,6 +280,16 @@ class Handler(SimpleHTTPRequestHandler):
                 self.handle_presets_select(data)
             else:
                 self.json({"ok": False, "error": "not found"}, code=404)
+        except Exception as exc:
+            self.json({"ok": False, "error": str(exc)}, code=500)
+
+    def do_DELETE(self) -> None:
+        path = urlparse(self.path).path
+        try:
+            if path == "/api/relation-avatar":
+                self.handle_relation_avatar_delete()
+                return
+            self.json({"ok": False, "error": "not found"}, code=404)
         except Exception as exc:
             self.json({"ok": False, "error": str(exc)}, code=500)
 
@@ -411,10 +428,11 @@ class Handler(SimpleHTTPRequestHandler):
     def handle_image_gen(self, data: dict) -> None:
         tags = str(data.get("tags", "")).strip()
         key = str(data.get("key", "")).strip()
+        relation_id = str(data.get("relationId", "")).strip()
         if not tags:
             self.json({"ok": False, "error": "missing tags"}, code=400)
             return
-        job_id = create_image_job(key, tags)
+        job_id = create_image_job(key, tags, relation_id=relation_id or None)
         image_queue.put(job_id)
         self.json({"ok": True, "jobId": job_id, "status": "queued"})
 
@@ -578,6 +596,14 @@ class Handler(SimpleHTTPRequestHandler):
             backup_messages()
         self.json({"ok": True})
 
+    def handle_image_tags(self, data: dict) -> None:
+        content = str(data.get("content", "")).strip()
+        if not content:
+            self.json({"ok": False, "error": "missing content"}, code=400)
+            return
+        tags = extract_image_tags_from_llm(content)
+        self.json({"ok": True, "tags": tags})
+
     def load_user_profile(self) -> dict:
         settings = load_settings()
         return {
@@ -624,6 +650,61 @@ class Handler(SimpleHTTPRequestHandler):
         try:
             binary = base64.b64decode(base64_data)
             USER_AVATAR_FILE.write_bytes(binary)
+            self.json({"ok": True})
+        except Exception as exc:
+            self.json({"ok": False, "error": str(exc)}, code=500)
+
+    def handle_relation_avatar(self) -> None:
+        params = parse_qs(urlparse(self.path).query)
+        relation_id = params.get("id", [""])[0]
+        card_id = params.get("cardId", [get_current_card_name()])[0]
+        if not relation_id:
+            self.json({"ok": False, "error": "missing relation id"}, code=400)
+            return
+        path = get_relation_avatar_path(relation_id, card_id)
+        if not path.exists() or not path.is_file():
+            self.json({"ok": False, "error": "no avatar"}, code=404)
+            return
+        mime = mimetypes.guess_type(str(path))[0] or "application/octet-stream"
+        data = path.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", mime)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "public, max-age=3600")
+        self.end_headers()
+        self.wfile.write(data)
+
+    def handle_relation_avatar_upload(self, data: dict) -> None:
+        import base64
+        relation_id = str(data.get("relationId", "")).strip()
+        if not relation_id:
+            self.json({"ok": False, "error": "missing relationId"}, code=400)
+            return
+        base64_data = str(data.get("base64", "")).strip()
+        if not base64_data:
+            self.json({"ok": False, "error": "no data"}, code=400)
+            return
+        if "," in base64_data:
+            base64_data = base64_data.split(",", 1)[1]
+        card_id = data.get("cardId") or get_current_card_name()
+        path = get_relation_avatar_path(relation_id, card_id)
+        try:
+            binary = base64.b64decode(base64_data)
+            path.write_bytes(binary)
+            self.json({"ok": True, "path": str(path)})
+        except Exception as exc:
+            self.json({"ok": False, "error": str(exc)}, code=500)
+
+    def handle_relation_avatar_delete(self) -> None:
+        params = parse_qs(urlparse(self.path).query)
+        relation_id = params.get("id", [""])[0]
+        card_id = params.get("cardId", [get_current_card_name()])[0]
+        if not relation_id:
+            self.json({"ok": False, "error": "missing relation id"}, code=400)
+            return
+        path = get_relation_avatar_path(relation_id, card_id)
+        try:
+            path.unlink(missing_ok=True)
             self.json({"ok": True})
         except Exception as exc:
             self.json({"ok": False, "error": str(exc)}, code=500)
@@ -891,7 +972,7 @@ def image_worker() -> None:
             image_queue.task_done()
 
 
-def create_image_job(key: str, tags: str) -> str:
+def create_image_job(key: str, tags: str, relation_id: str | None = None) -> str:
     job_id = uuid4().hex
     with image_lock:
         jobs = load_image_jobs()
@@ -900,6 +981,7 @@ def create_image_job(key: str, tags: str) -> str:
             "key": key,
             "tags": tags,
             "card": get_current_card_name(),
+            "relationId": relation_id or "",
             "status": "queued",
             "path": "",
             "error": "",
@@ -928,6 +1010,18 @@ def run_image_job(job_id: str) -> None:
     out_dir = get_card_dir(card) / "generated"
     out_dir.mkdir(exist_ok=True)
 
+    relation_id = job.get("relationId") or ""
+    ref_image_path = ""
+    if relation_id:
+        avatar_path = get_relation_avatar_path(relation_id, card)
+        if avatar_path.exists() and avatar_path.is_file():
+            ref_image_path = str(avatar_path)
+
+    if not ref_image_path:
+        char_image = _get_character_image_path(card)
+        if char_image:
+            ref_image_path = str(char_image)
+
     if backend == "agnes":
         script = PROJECT_ROOT / "scripts" / "agnes-generate.py"
         cmd = [
@@ -936,6 +1030,8 @@ def run_image_job(job_id: str) -> None:
             "-s", "1024x768",
             "-o", str(out_dir),
         ]
+        if ref_image_path:
+            cmd.extend(["--image", ref_image_path])
     else:
         script = PROJECT_ROOT / "scripts" / "novelai-generate.py"
         cmd = [
@@ -944,6 +1040,8 @@ def run_image_job(job_id: str) -> None:
             "-s", "832x1216",
             "-o", str(out_dir),
         ]
+        if ref_image_path:
+            cmd.extend(["--image", ref_image_path])
 
     try:
         result = subprocess.run(
@@ -1076,6 +1174,29 @@ def novelai_key_configured() -> bool:
 def newest_png(path: Path) -> Path | None:
     files = sorted(path.glob("*.png"), key=lambda p: p.stat().st_mtime, reverse=True)
     return files[0] if files else None
+
+
+def get_relation_avatars_dir(card_id: str | None = None) -> Path:
+    card = card_id or get_current_card_name()
+    d = get_card_dir(card) / "relation_avatars"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def get_relation_avatar_path(relation_id: str, card_id: str | None = None) -> Path:
+    return get_relation_avatars_dir(card_id) / f"{relation_id}.png"
+
+
+def _get_character_image_path(card_id: str | None = None) -> Path | None:
+    card_dir = get_card_dir(card_id or get_current_card_name())
+    preferred = card_dir / "avatar.png"
+    if preferred.exists() and preferred.is_file():
+        return preferred
+    for ext in ["*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp"]:
+        images = list(card_dir.glob(ext))
+        if images:
+            return images[0]
+    return None
 
 
 def read_text(path: Path) -> str:

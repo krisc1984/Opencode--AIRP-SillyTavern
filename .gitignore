@@ -72,3 +72,6 @@ web-frontend/preset-injection.log
 web-frontend/server_debug.log
 web-frontend/server_debug.txt
 web-frontend/test-import.cmd
+
+web-frontend/server_console.log
+web-frontend/upload-test.html

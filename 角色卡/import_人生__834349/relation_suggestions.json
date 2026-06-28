@@ -1,9 +1,62 @@
 [
   {
-    "name": "金晨",
-    "relation": "情人",
-    "favor": 95,
-    "desc": "佳士得悉尼负责人，刚一起淋浴更衣，挽手去吃夜宵",
+    "name": "展厅里冷气很足",
+    "relation": "新角色",
+    "favor": 0,
+    "source": "ai"
+  },
+  {
+    "name": "保持节奏",
+    "relation": "新角色",
+    "favor": 0,
+    "source": "ai"
+  },
+  {
+    "name": "她点了",
+    "relation": "新角色",
+    "favor": 0,
+    "source": "ai"
+  },
+  {
+    "name": "短发女生",
+    "relation": "新角色",
+    "favor": 0,
+    "source": "ai"
+  },
+  {
+    "name": "然后开去西溪",
+    "relation": "新角色",
+    "favor": 0,
+    "source": "ai"
+  },
+  {
+    "name": "她抬起头来",
+    "relation": "新角色",
+    "favor": 0,
+    "source": "ai"
+  },
+  {
+    "name": "她又",
+    "relation": "新角色",
+    "favor": 0,
+    "source": "ai"
+  },
+  {
+    "name": "不是给我",
+    "relation": "新角色",
+    "favor": 0,
+    "source": "ai"
+  },
+  {
+    "name": "她没",
+    "relation": "新角色",
+    "favor": 0,
+    "source": "ai"
+  },
+  {
+    "name": "销售顾",
+    "relation": "新角色",
+    "favor": 0,
     "source": "ai"
   }
 ]

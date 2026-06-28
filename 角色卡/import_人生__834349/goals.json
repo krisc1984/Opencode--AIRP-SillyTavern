@@ -3,17 +3,22 @@
     {
       "id": "g1",
       "title": "探索金瓶神气的奥秘",
-      "progress": 50
+      "progress": 84
     },
     {
       "id": "g2",
       "title": "与金晨的关系推进",
-      "progress": 92
+      "progress": 99
     },
     {
       "id": "g3",
-      "title": "回国继承遗产",
-      "progress": 0
+      "title": "处理遗产手续",
+      "progress": 55
+    },
+    {
+      "id": "g4",
+      "title": "与李小冉建立更深联系",
+      "progress": 94
     }
   ]
 }
