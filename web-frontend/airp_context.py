@@ -40,6 +40,10 @@ def _assemble_presets() -> dict[str, list[dict]]:
 
     Returns an empty dict if the presets directory does not exist or contains no
     valid preset files.
+
+    User toggle choices from ``preset-config.json`` override the raw scanner
+    ``enabled`` flag so that disabling an entry in the manager is respected at
+    injection time.
     """
     presets_root = _presets_dir()
     if not presets_root.is_dir():
@@ -51,12 +55,28 @@ def _assemble_presets() -> dict[str, list[dict]]:
     except Exception:
         return {}
 
+    # Load user toggle choices once. 结构: {preset_id: {entry_id: {enabled, ...}}}
+    try:
+        cfg = preset_config_manager.load()
+        user_entries: dict[str, dict[str, dict[str, Any]]] = cfg.presets or {}
+    except Exception:
+        user_entries = {}
+
     assembled: dict[str, list[dict]] = {}
     for group in preset_groups:
         preset_name = group.name
         entries: list[dict] = []
+        # ``user_entries[preset_id]`` is the preset metadata block whose ``entries``
+        # key holds the per-entry toggle map.
+        preset_user_map = (user_entries.get(group.id) or {}).get("entries") or {}
         for entry in group.entries:
-            if not entry.enabled:
+            # User toggle takes precedence over the raw scanner flag.
+            user_entry_cfg = preset_user_map.get(entry.id)
+            if user_entry_cfg is not None and "enabled" in user_entry_cfg:
+                entry_enabled = bool(user_entry_cfg["enabled"])
+            else:
+                entry_enabled = entry.enabled
+            if not entry_enabled:
                 continue
             entries.append(
                 {

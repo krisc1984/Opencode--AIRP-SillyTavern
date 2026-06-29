@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>对话历史 - OpenCode AIRP</title>
+<style>
+:root{
+  --bg:#16110e;--panel:#1f1915;--panel-2:#2a221c;--text:#e8dcc8;--muted:#a89880;
+  --line:#3d3228;--gold:#d4a574;--gold-2:#c49a6c;--brand:#e8b86d;--brand-2:#3d2e1a;
+  --danger:#c45c5c;--shadow:0 12px 36px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:14px/1.55 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+button{touch-action:manipulation;cursor:pointer}
+.top{
+  display:flex;align-items:center;gap:12px;padding:14px 20px;
+  background:linear-gradient(180deg, rgba(212,165,116,.08), transparent);
+  border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;backdrop-filter:blur(8px);
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg, var(--gold), var(--gold-2));display:flex;align-items:center;justify-content:center;color:#1a1614;font-weight:900;font-size:14px}
+.brand-text{font-weight:700;font-size:15px;color:var(--gold);letter-spacing:.3px}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.spacer{flex:1}
+.icon-btn{
+  width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);
+  display:inline-flex;align-items:center;justify-content:center;text-decoration:none;transition:all .15s;font-size:13px;
+}
+.icon-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--panel-2)}
+.sub-nav{
+  display:flex;gap:6px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap;
+}
+.sub-tab{
+  border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:5px 12px;
+  font-size:12px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+}
+.sub-tab:hover{border-color:var(--gold);color:var(--gold)}
+.sub-tab.active{background:var(--brand-2);border-color:var(--gold);color:var(--gold);font-weight:600}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.page-title{font-size:22px;font-weight:800;color:var(--gold);letter-spacing:.3px}
+.btn{
+  border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:6px 12px;
+  font-size:12px;display:inline-flex;align-items:center;gap:6px;transition:all .15s;
+}
+.btn:hover{border-color:var(--gold);color:var(--gold);background:var(--panel-2)}
+.btn-primary{
+  border:none;background:linear-gradient(135deg, var(--gold), var(--gold-2));color:#1a1614;border-radius:8px;
+  padding:7px 14px;font-size:12px;font-weight:600;
+}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.convo-list{display:flex;flex-direction:column;gap:10px}
+.convo-item{
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;transition:all .15s;
+}
+.convo-item:hover{border-color:var(--gold)}
+.convo-head{
+  display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;transition:background .12s;
+}
+.convo-head:hover{background:var(--panel-2)}
+.convo-icon{
+  width:36px;height:36px;border-radius:8px;background:var(--panel-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;
+}
+.convo-info{flex:1;min-width:0}
+.convo-name{font-weight:700;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.convo-meta{font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}
+.convo-meta span{display:inline-flex;align-items:center;gap:4px}
+.convo-actions{display:flex;gap:6px;flex-shrink:0}
+.convo-arrow{
+  width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:var(--panel);
+  color:var(--text);display:inline-flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;
+}
+.convo-arrow:hover{border-color:var(--gold);color:var(--gold)}
+.convo-arrow.open{transform:rotate(180deg);color:var(--gold);border-color:var(--gold)}
+.convo-body{display:none;border-top:1px solid var(--line)}
+.convo-body.open{display:block}
+.msg-list{max-height:600px;overflow-y:auto;padding:10px 16px}
+.msg-row{
+  display:flex;gap:10px;padding:10px;border-radius:8px;transition:background .12s;
+}
+.msg-row:hover{background:var(--panel-2)}
+.msg-avatar{
+  width:28px;height:28px;border-radius:6px;background:var(--panel);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;
+}
+.msg-avatar.user{color:var(--gold);border-color:rgba(212,165,116,.3)}
+.msg-avatar.assistant{color:var(--muted)}
+.msg-content{flex:1;min-width:0}
+.msg-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.msg-role{font-size:12px;font-weight:600;color:var(--text)}
+.msg-time{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.msg-text{font-size:13px;color:var(--text);white-space:pre-wrap;word-break:break-word;line-height:1.6}
+.msg-text:empty::before{content:"(空消息)";color:var(--muted)}
+.empty{text-align:center;padding:80px 20px;color:var(--muted)}
+.empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.empty-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px}
+.empty-desc{font-size:13px}
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:60;
+  background:var(--panel-2);color:var(--gold);border:1px solid var(--gold);
+  border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;
+  box-shadow:var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none;
+}
+.toast.show{opacity:1}
+@media (max-width:760px){
+  .container{padding:12px}
+  .msg-content{margin-left:0}
+  .convo-actions .btn span{display:none}
+}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand">
+    <div class="brand-icon">AIRP</div>
+    <div>
+      <div class="brand-text">OpenCode AIRP SillyTavern</div>
+      <div class="brand-sub">对话历史</div>
+    </div>
+  </div>
+  <span class="spacer"></span>
+  <a class="icon-btn" href="/index.html" title="返回对话">&#8592;</a>
+</div>
+<div class="sub-nav">
+  <a href="/cards.html" class="sub-tab">&#128100; 角色卡</a>
+  <a href="/worldbooks.html" class="sub-tab">&#127758; 世界书</a>
+  <a href="/history.html" class="sub-tab active">&#128197; 对话历史</a>
+  <a href="/presets.html" class="sub-tab">&#128396; 预设</a>
+  <a href="/regex.html" class="sub-tab">&#10070; 正则</a>
+  <a href="/builtin-cards.html" class="sub-tab">&#128188; 内置角色卡</a>
+  <a href="/builtin-presets.html" class="sub-tab">&#128295; 内置预设</a>
+</div>
+<div class="container">
+  <div class="toolbar">
+    <div class="page-title">&#128197; 对话历史</div>
+    <button class="btn-primary" onclick="exportAll()">&#128190; 导出全部 TXT</button>
+    <span class="spacer"></span>
+    <button class="btn" onclick="refresh()">&#128260; 刷新</button>
+  </div>
+  <div id="historyList" class="convo-list"></div>
+  <div id="emptyState" class="empty" style="display:none">
+    <div class="empty-icon">&#128218;</div>
+    <div class="empty-title">暂无对话历史</div>
+    <div class="empty-desc">当前没有任何角色卡包含对话记录。</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let historyData=null;
+
+function toast(text){
+  const el=$('toast');
+  el.textContent=text;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2000);
+}
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]))}
+function escAttr(s){return String(s??'').replace(/[&<>"'\n]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;','\n':' '}[c]))}
+
+async function api(path,opts){
+  const res=await fetch(path,Object.assign({headers:{'Content-Type':'application/json'}},opts||{}));
+  const data=await res.json();
+  if(!data.ok && data.error) throw new Error(data.error);
+  return data;
+}
+
+function formatTime(ts){
+  if(!ts) return '';
+  const d=new Date(ts);
+  if(isNaN(d.getTime())) return ts;
+  const pad=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function formatSize(entries){
+  const count=Array.isArray(entries)?entries.length:0;
+  if(count===0) return '0 条消息';
+  if(count===1) return '1 条消息';
+  return `${count} 条消息`;
+}
+
+function renderHistory(){
+  if(!historyData) return;
+  const cards=historyData.cards||[];
+  const list=$('historyList');
+  const empty=$('emptyState');
+  const validCards=cards.filter(c=>c.messages>0);
+  if(!validCards.length){
+    list.style.display='none';
+    empty.style.display='block';
+    return;
+  }
+  list.style.display='flex';
+  empty.style.display='none';
+  list.innerHTML=validCards.map((card,idx)=>{
+    const entries=Array.isArray(card.entries)?card.entries:[];
+    const updated=formatTime(card.updatedAt);
+    return `<div class="convo-item">
+      <div class="convo-head" onclick="toggleConvo(this)">
+        <div class="convo-icon">&#128100;</div>
+        <div class="convo-info">
+          <div class="convo-name">${esc(card.name||card.id)}</div>
+          <div class="convo-meta">
+            <span>&#128196; ${formatSize(entries)}</span>
+            ${updated?`<span>&#128336; ${esc(updated)}</span>`:''}
+          </div>
+        </div>
+        <div class="convo-actions">
+          <button class="btn" onclick="event.stopPropagation();exportCard('${escAttr(card.id)}','${escAttr(card.name||card.id)}')" title="导出 TXT">
+            &#128190; <span>导出</span>
+          </button>
+        </div>
+        <div class="convo-arrow">&#8964;</div>
+      </div>
+      <div class="convo-body">
+        <div class="msg-list">
+          ${entries.map((e,ei)=>{
+            const isUser=e.role==='user';
+            const avatarLabel=isUser?'我':'AI';
+            const avatarCls=isUser?'user':'assistant';
+            const time=formatTime(e.timestamp);
+            const content=esc(e.content||e.raw_content||'');
+            return `<div class="msg-row">
+              <div class="msg-avatar ${avatarCls}">${esc(avatarLabel)}</div>
+              <div class="msg-content">
+                <div class="msg-header">
+                  <span class="msg-role">${isUser?'用户':'助手'}</span>
+                  ${time?`<span class="msg-time">${esc(time)}</span>`:''}
+                </div>
+                <div class="msg-text">${content||'(空消息)'}</div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleConvo(head){
+  const body=head.nextElementSibling;
+  const arrow=head.querySelector('.convo-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function buildTxt(card){
+  const lines=[`=== ${card.name||card.id} ===`, `导出时间：${formatTime(new Date().toISOString())}`, ''];
+  const entries=Array.isArray(card.entries)?card.entries:[];
+  entries.forEach((e,i)=>{
+    const role=e.role==='user'?'用户':'助手';
+    const time=formatTime(e.timestamp);
+    const header=`[${time}] ${role}`;
+    const content=e.content||e.raw_content||'(空消息)';
+    lines.push(header);
+    lines.push(content);
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+
+function downloadTxt(filename,text){
+  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportCard(cardId,cardName){
+  if(!historyData) return;
+  const card=historyData.cards.find(c=>c.id===cardId);
+  if(!card){
+    toast('未找到该对话');
+    return;
+  }
+  const txt=buildTxt(card);
+  const safeName=(cardName||cardId).replace(/[\\/:*?"<>|]/g,'_');
+  downloadTxt(`${safeName}_${new Date().toISOString().slice(0,10)}.txt`,txt);
+  toast('已导出 TXT');
+}
+
+function exportAll(){
+  if(!historyData) return;
+  const cards=(historyData.cards||[]).filter(c=>c.messages>0);
+  if(!cards.length){
+    toast('暂无对话可导出');
+    return;
+  }
+  const parts=['=== OpenCode AIRP 对话历史导出 ===',`导出时间：${formatTime(new Date().toISOString())}`,`共 ${cards.length} 个角色卡`, ''];
+  cards.forEach(card=>{
+    parts.push(`\n\n${'='.repeat(40)}`);
+    parts.push(buildTxt(card));
+  });
+  const txt=parts.join('\n');
+  downloadTxt(`对话历史_${new Date().toISOString().slice(0,10)}.txt`,txt);
+  toast('已导出全部 TXT');
+}
+
+async function load(){
+  const data=await api('/api/history');
+  historyData=data;
+  renderHistory();
+}
+
+async function refresh(){
+  await load();
+  toast('已刷新');
+}
+
+load().catch(e=>toast(e.message));
+</script>
+</body>
+</html>

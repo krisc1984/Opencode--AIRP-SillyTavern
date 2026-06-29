@@ -141,6 +141,22 @@ class TestGetPresets:
         assert "p1" in resp["presets"]
         assert resp["presets"]["p1"]["entries"]["e1"]["enabled"] is True
 
+    def test_returns_entries_for_inactive_presets(self, client: _FakeHandler, tmp_path: Path):
+        manager = PresetConfigManager(tmp_path / "preset-config.json")
+        manager.save(
+            PresetConfig(
+                active_preset_id="p1",
+                presets={
+                    "p1": {"source": "presets/p1.json", "enabled": True, "entries": {"e1": {"enabled": True, "order": 1}}},
+                    "p2": {"source": "presets/p2.json", "enabled": False, "entries": {"e2": {"enabled": False, "order": 1}}},
+                },
+            )
+        )
+        resp = client.do_GET("/api/presets")
+        assert resp["ok"] is True
+        assert "p2" in resp["presets"]
+        assert resp["presets"]["p2"]["entries"]["e2"]["enabled"] is False
+
     def test_returns_404_for_unknown_path(self, client: _FakeHandler):
         resp = client.do_GET("/api/presets/unknown")
         assert resp["ok"] is False

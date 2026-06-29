@@ -1,0 +1,60 @@
+{
+  "relations": [
+    {
+      "id": "566f3e8d6f4f4e19a6c8b92b770307ca",
+      "name": "世界背景",
+      "relation": "核心设定 (V1.0, R18)",
+      "favor": 0,
+      "avatar": "世",
+      "source": "worldbook"
+    },
+    {
+      "id": "1b55b3094d5c4d4f8d12089d37a5baf4",
+      "name": "关键人物",
+      "relation": "主角核心设定及癖好 (V1.0, R18)",
+      "favor": 0,
+      "avatar": "关",
+      "source": "worldbook"
+    },
+    {
+      "id": "cb4be75706484a5ab71d862c20dfb1cc",
+      "name": "特殊能力",
+      "relation": "神级猎艳系统详解 (V1.0, R18暗示)",
+      "favor": 0,
+      "avatar": "特",
+      "source": "worldbook"
+    },
+    {
+      "id": "ac5486357814456d97a1cce8851ffd84",
+      "name": "地理区域",
+      "relation": "初始活动地点 (V1.0)",
+      "favor": 0,
+      "avatar": "地",
+      "source": "worldbook"
+    },
+    {
+      "id": "4a7c19dffe984e54a1677eb92756bf4c",
+      "name": "R18相关",
+      "relation": "NTR核心玩法 (V1.0)",
+      "favor": 0,
+      "avatar": "R",
+      "source": "worldbook"
+    },
+    {
+      "id": "bab78d4b1513411c96255ffd35506b46",
+      "name": "社会风俗",
+      "relation": "金钱观与神豪作风 (V1.0, R18暗示)",
+      "favor": 0,
+      "avatar": "社",
+      "source": "worldbook"
+    },
+    {
+      "id": "06d4c291e2b64499958a651f7cf1879b",
+      "name": "核心剧情",
+      "relation": "主角成长与无敌之路 (V1.0)",
+      "favor": 0,
+      "avatar": "核",
+      "source": "worldbook"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>内置角色卡 - OpenCode AIRP</title>
+<style>
+:root{
+  --bg:#16110e;--panel:#1f1915;--panel-2:#2a221c;--text:#e8dcc8;--muted:#a89880;
+  --line:#3d3228;--gold:#d4a574;--gold-2:#c49a6c;--brand:#e8b86d;--brand-2:#3d2e1a;
+  --danger:#c45c5c;--shadow:0 12px 36px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:14px/1.55 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+button{touch-action:manipulation;cursor:pointer}
+.top{
+  display:flex;align-items:center;gap:12px;padding:14px 20px;
+  background:linear-gradient(180deg, rgba(212,165,116,.08), transparent);
+  border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;backdrop-filter:blur(8px);
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg, var(--gold), var(--gold-2));display:flex;align-items:center;justify-content:center;color:#1a1614;font-weight:900;font-size:14px}
+.brand-text{font-weight:700;font-size:15px;color:var(--gold);letter-spacing:.3px}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.spacer{flex:1}
+.icon-btn{
+  width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);
+  display:inline-flex;align-items:center;justify-content:center;text-decoration:none;transition:all .15s;font-size:13px;
+}
+.icon-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--panel-2)}
+.sub-nav{
+  display:flex;gap:6px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap;
+}
+.sub-tab{
+  border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:5px 12px;
+  font-size:12px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+}
+.sub-tab:hover{border-color:var(--gold);color:var(--gold)}
+.sub-tab.active{background:var(--brand-2);border-color:var(--gold);color:var(--gold);font-weight:600}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.empty{text-align:center;padding:80px 20px;color:var(--muted)}
+.empty-icon{font-size:56px;margin-bottom:16px;opacity:.5}
+.empty-title{font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px}
+.empty-desc{font-size:14px}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand">
+    <div class="brand-icon">AIRP</div>
+    <div>
+      <div class="brand-text">OpenCode AIRP SillyTavern</div>
+      <div class="brand-sub">内置角色卡</div>
+    </div>
+  </div>
+  <span class="spacer"></span>
+  <a class="icon-btn" href="/index.html" title="返回对话">&#8592;</a>
+</div>
+<div class="sub-nav">
+  <a href="/cards.html" class="sub-tab">&#128100; 角色卡</a>
+  <a href="/worldbooks.html" class="sub-tab">&#127758; 世界书</a>
+  <a href="/history.html" class="sub-tab">&#128197; 对话历史</a>
+  <a href="/presets.html" class="sub-tab">&#128396; 预设</a>
+  <a href="/regex.html" class="sub-tab">&#10070; 正则</a>
+  <a href="/builtin-cards.html" class="sub-tab active">&#128188; 内置角色卡</a>
+  <a href="/builtin-presets.html" class="sub-tab">&#128295; 内置预设</a>
+</div>
+<div class="container">
+  <div class="empty">
+    <div class="empty-icon">&#128188;</div>
+    <div class="empty-title">内置角色卡</div>
+    <div class="empty-desc">内置角色卡功能正在开发中，敬请期待。</div>
+  </div>
+</div>
+</body>
+</html>

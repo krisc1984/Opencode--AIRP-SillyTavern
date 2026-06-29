@@ -62,6 +62,10 @@ from handler import append_message, build_content_js, build_content_payload, rer
 from opencode_client import extract_image_tags_from_llm
 from preset_config import PresetConfigManager
 
+if str(PROJECT_ROOT / "airp-sillytavern") not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT / "airp-sillytavern"))
+from runtime.import_card import WORLD_ENTRY_DEFAULTS  # noqa: E402
+
 
 WEB_ROOT = Path(__file__).resolve().parent
 PID_FILE = WEB_ROOT / "server.pid"
@@ -73,6 +77,8 @@ IMAGE_JOBS_FILE = WEB_ROOT / "image_jobs.json"
 USER_AVATAR_FILE = WEB_ROOT / "user_avatar.png"
 PRESET_CONFIG_FILE = WEB_ROOT / "preset-config.json"
 PRESETS_DIR = WEB_ROOT.parent / "presets"
+REGEX_DIR = WEB_ROOT / "regex"
+WORLDBOOKS_DIR_NAME = "worldbooks"
 DEFAULT_PORT = int(os.environ.get("AIRP_PORT", "8765"))
 OPENCODE_PORT = int(os.environ.get("OPENCODE_PORT", "4096"))
 
@@ -151,10 +157,26 @@ class Handler(SimpleHTTPRequestHandler):
                 self.handle_character_image()
             elif path == "/api/resources/cards":
                 self.handle_resources_cards()
+            elif path == "/api/resources/worldbooks":
+                self.handle_resources_worldbooks()
+            elif path in ("/resources.html", "/resources"):
+                self.send_response(302)
+                self.send_header("Location", "/cards.html")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                return
             elif path == "/api/cards/import":
                 self.handle_cards_import()
             elif path == "/api/cards/delete":
                 self.handle_cards_delete()
+            elif path == "/api/history":
+                self.handle_history()
+            elif path == "/api/regex/list":
+                self.handle_regex_list()
+            elif path == "/api/regex/rules":
+                self.handle_regex_rules()
+            elif path.startswith("/api/regex/file"):
+                self.handle_regex_file()
             elif path == "/api/relations":
                 card_id = parse_qs(urlparse(self.path).query).get("cardId", [None])[0]
                 relations = load_relations(card_id)
@@ -195,6 +217,12 @@ class Handler(SimpleHTTPRequestHandler):
             if path == "/api/cards/import":
                 self.handle_cards_import()
                 return
+            if path == "/api/worldbooks/import":
+                self.handle_worldbooks_import()
+                return
+            if path == "/api/regex/import":
+                self.handle_regex_import()
+                return
             data = self.read_json_body()
         except Exception as exc:
             self.json({"ok": False, "error": str(exc)}, code=400)
@@ -218,6 +246,12 @@ class Handler(SimpleHTTPRequestHandler):
                 if last_user:
                     write_pending(last_user)
                 self.json({"ok": True, "text": last_user})
+            elif path == "/api/regex/rule/toggle":
+                self.handle_regex_rule_toggle(data)
+            elif path == "/api/regex/save":
+                self.handle_regex_save(data)
+            elif path == "/api/regex/rule/delete":
+                self.handle_regex_rule_delete(data)
             elif path == "/api/switch-opening":
                 selected = switch_opening(int(data.get("id", 0)))
                 build_content_js()
@@ -235,6 +269,12 @@ class Handler(SimpleHTTPRequestHandler):
                 payload = save_worldbook_entries(data.get("name", "main"), data.get("entries") or [])
                 rebuild_context_snapshot()
                 self.json({"ok": True, "worldbook": {"id": payload["id"], "cardId": payload["cardId"], "entries": payload["entries"]}})
+            elif path == "/api/worldbook/entry":
+                self.handle_worldbook_entry()
+            elif path == "/api/worldbook/reorder":
+                self.handle_worldbook_reorder()
+            elif path == "/api/worldbooks":
+                self.handle_worldbook_create()
             elif path == "/api/worldbook/preview":
                 self.json({"ok": True, "preview": preview_worldbook_activation(data.get("text", ""), data.get("name", "main"))})
             elif path == "/api/relations/add":
@@ -278,6 +318,8 @@ class Handler(SimpleHTTPRequestHandler):
                 self.handle_presets_reorder(data)
             elif path == "/api/presets/select":
                 self.handle_presets_select(data)
+            elif path == "/api/regex/delete":
+                self.handle_regex_delete(data)
             else:
                 self.json({"ok": False, "error": "not found"}, code=404)
         except Exception as exc:
@@ -288,6 +330,12 @@ class Handler(SimpleHTTPRequestHandler):
         try:
             if path == "/api/relation-avatar":
                 self.handle_relation_avatar_delete()
+                return
+            if path == "/api/worldbooks":
+                self.handle_worldbook_delete()
+                return
+            if path == "/api/worldbook/entry":
+                self.handle_worldbook_entry_delete()
                 return
             self.json({"ok": False, "error": "not found"}, code=404)
         except Exception as exc:
@@ -331,13 +379,11 @@ class Handler(SimpleHTTPRequestHandler):
         active_id = cfg.active_preset_id
         presets_summary: dict[str, Any] = {}
         for pid, pdata in cfg.presets.items():
-            if pid == active_id:
-                presets_summary[pid] = pdata  # full details including entries
-            else:
-                presets_summary[pid] = {
-                    "source": pdata.get("source", ""),
-                    "enabled": pdata.get("enabled", False),
-                }
+            presets_summary[pid] = {
+                "source": pdata.get("source", ""),
+                "enabled": pdata.get("enabled", False),
+                "entries": pdata.get("entries", {}),
+            }
         
         with open(debug_path, "a", encoding="utf-8") as f:
             f.write(f"responding with active={active_id}, total={len(presets_summary)} presets\n")
@@ -370,6 +416,7 @@ class Handler(SimpleHTTPRequestHandler):
                     "injection_order": entry.injection_order,
                     "marker": entry.marker,
                     "forbid_overrides": entry.forbid_overrides,
+                    "tokens": _count_tokens(entry.content),
                 })
             result.append({
                 "name": group.name,
@@ -741,6 +788,215 @@ class Handler(SimpleHTTPRequestHandler):
         active = get_current_card_name()
         self.json({"ok": True, "current": active, "cards": cards})
 
+    def handle_resources_worldbooks(self) -> None:
+        params = parse_qs(urlparse(self.path).query)
+        card_id = str(params.get("cardId", [get_current_card_name()])[0] or get_current_card_name()).strip()
+        if not card_id:
+            self.json({"ok": True, "current": "", "cardId": "", "worldbooks": []})
+            return
+        try:
+            card_dir = get_card_dir(card_id)
+        except FileNotFoundError:
+            self.json({"ok": True, "current": "", "cardId": card_id, "worldbooks": []})
+            return
+        wb_dir = card_dir / WORLDBOOKS_DIR_NAME
+        wb_dir.mkdir(parents=True, exist_ok=True)
+        worldbooks = list_worldbooks(card_id)
+        result = []
+        for wb in worldbooks:
+            path = wb_dir / f"{wb['id']}.json"
+            result.append({
+                "id": wb["id"],
+                "name": wb["name"],
+                "entries": wb.get("entries", 0),
+                "size": path.stat().st_size if path.exists() else 0,
+                "updatedAt": wb.get("updatedAt", ""),
+            })
+        active = get_current_card_name()
+        self.json({"ok": True, "current": active, "cardId": card_id, "worldbooks": result})
+
+    def handle_worldbooks_import(self) -> None:
+        try:
+            files = self.read_multipart_files("file")
+        except Exception as exc:
+            self.json({"ok": False, "error": f"upload parse failed: {exc}"}, code=400)
+            return
+        if not files:
+            self.json({"ok": False, "error": "no files uploaded"}, code=400)
+            return
+        params = parse_qs(urlparse(self.path).query)
+        card_id = str(params.get("cardId", [get_current_card_name()])[0] or get_current_card_name()).strip()
+        try:
+            card_dir = get_card_dir(card_id)
+        except FileNotFoundError:
+            self.json({"ok": False, "error": f"character card not found: {card_id}"}, code=404)
+            return
+        wb_dir = card_dir / WORLDBOOKS_DIR_NAME
+        wb_dir.mkdir(parents=True, exist_ok=True)
+        imported = []
+        for filename, data in files:
+            if not data:
+                continue
+            if not filename.lower().endswith(".json"):
+                continue
+            safe_name = re.sub(r'[\\/:*?"<>|]', "_", filename)
+            base_name = Path(safe_name).stem.strip() or "未命名世界书"
+            target = wb_dir / f"{base_name}.json"
+            if target.exists():
+                target = wb_dir / f"{base_name}_{int(datetime.now().timestamp())}.json"
+            try:
+                target.write_bytes(data)
+                parsed = json.loads(data.decode("utf-8", errors="replace"))
+                entries = parsed.get("entries", []) if isinstance(parsed, dict) else []
+                imported.append({
+                    "id": target.stem,
+                    "name": target.stem,
+                    "entries": len(entries) if isinstance(entries, list) else 0,
+                    "source": filename,
+                })
+            except Exception as exc:
+                imported.append({"id": base_name, "name": base_name, "error": str(exc)})
+        if not imported:
+            self.json({"ok": False, "error": "no valid json files imported"}, code=400)
+            return
+        self.json({"ok": True, "imported": imported})
+
+    def handle_worldbook_create(self) -> None:
+        data = self.read_json_body()
+        card_id = str(data.get("cardId") or get_current_card_name() or "").strip()
+        name = str(data.get("name", "")).strip()
+        if not card_id:
+            self.json({"ok": False, "error": "cardId required"}, code=400)
+            return
+        if not name:
+            self.json({"ok": False, "error": "name required"}, code=400)
+            return
+        safe_name = re.sub(r'[\\/:*?"<>|]', "_", name)
+        try:
+            card_dir = get_card_dir(card_id)
+        except FileNotFoundError:
+            self.json({"ok": False, "error": f"character card not found: {card_id}"}, code=404)
+            return
+        wb_dir = card_dir / WORLDBOOKS_DIR_NAME
+        wb_dir.mkdir(parents=True, exist_ok=True)
+        target = wb_dir / f"{safe_name}.json"
+        if target.exists():
+            self.json({"ok": False, "error": f"世界书「{safe_name}」已存在"}, code=409)
+            return
+        try:
+            atomic_json(target, {"entries": []})
+            save_worldbook_entries(safe_name, [], card_id)
+            self.json({"ok": True, "worldbook": {"id": safe_name, "name": safe_name, "entries": 0}})
+        except Exception as exc:
+            self.json({"ok": False, "error": str(exc)}, code=500)
+
+    def handle_worldbook_delete(self) -> None:
+        params = parse_qs(urlparse(self.path).query)
+        card_id = str(params.get("cardId", [get_current_card_name()])[0] or get_current_card_name()).strip()
+        name = str(params.get("name", [""])[0] or "").strip()
+        if not name:
+            self.json({"ok": False, "error": "name required"}, code=400)
+            return
+        if not card_id:
+            self.json({"ok": False, "error": "cardId required"}, code=400)
+            return
+        try:
+            card_dir = get_card_dir(card_id)
+        except FileNotFoundError:
+            self.json({"ok": False, "error": f"character card not found: {card_id}"}, code=404)
+            return
+        target = (card_dir / WORLDBOOKS_DIR_NAME / f"{name}.json").resolve()
+        wb_root = (card_dir / WORLDBOOKS_DIR_NAME).resolve()
+        if not target.exists() or not str(target).startswith(str(wb_root)):
+            self.json({"ok": False, "error": "worldbook not found"}, code=404)
+            return
+        try:
+            target.unlink()
+        except Exception as exc:
+            self.json({"ok": False, "error": str(exc)}, code=500)
+            return
+        self.json({"ok": True, "deleted": name})
+
+    def handle_worldbook_entry(self) -> None:
+        data = self.read_json_body()
+        card_id = str(data.get("cardId") or get_current_card_name() or "").strip()
+        name = str(data.get("name", "main")).strip()
+        entry = data.get("entry") or {}
+        if not card_id:
+            self.json({"ok": False, "error": "cardId required"}, code=400)
+            return
+        try:
+            payload = get_worldbook_payload(name, card_id)
+        except FileNotFoundError:
+            self.json({"ok": False, "error": "worldbook not found"}, code=404)
+            return
+        entries = list(payload.get("entries") or [])
+        uid = entry.get("uid")
+        if uid is not None:
+            for idx, e in enumerate(entries):
+                if e.get("uid") == uid:
+                    entries[idx] = {**e, **entry, "uid": uid}
+                    break
+            else:
+                entries.append({**WORLD_ENTRY_DEFAULTS, **entry, "uid": uid})
+        else:
+            max_uid = max((e.get("uid", 0) for e in entries), default=0)
+            new_entry = {**WORLD_ENTRY_DEFAULTS, **entry, "uid": max_uid + 1}
+            entries.append(new_entry)
+            uid = new_entry["uid"]
+        save_worldbook_entries(name, entries, card_id)
+        rebuild_context_snapshot()
+        self.json({"ok": True, "entry": entry, "uid": uid, "count": len(entries)})
+
+    def handle_worldbook_entry_delete(self) -> None:
+        data = self.read_json_body()
+        card_id = str(data.get("cardId") or get_current_card_name() or "").strip()
+        name = str(data.get("name", "main")).strip()
+        uid = data.get("uid")
+        if not card_id:
+            self.json({"ok": False, "error": "cardId required"}, code=400)
+            return
+        if uid is None:
+            self.json({"ok": False, "error": "uid required"}, code=400)
+            return
+        try:
+            payload = get_worldbook_payload(name, card_id)
+        except FileNotFoundError:
+            self.json({"ok": False, "error": "worldbook not found"}, code=404)
+            return
+        entries = list(payload.get("entries") or [])
+        for idx, e in enumerate(entries):
+            if e.get("uid") == uid:
+                entries.pop(idx)
+                break
+        save_worldbook_entries(name, entries, card_id)
+        rebuild_context_snapshot()
+        self.json({"ok": True, "count": len(entries)})
+
+    def handle_worldbook_reorder(self) -> None:
+        data = self.read_json_body()
+        card_id = str(data.get("cardId") or get_current_card_name() or "").strip()
+        name = str(data.get("name", "main")).strip()
+        from_index = int(data.get("fromIndex", 0))
+        to_index = int(data.get("toIndex", 0))
+        if not card_id:
+            self.json({"ok": False, "error": "cardId required"}, code=400)
+            return
+        try:
+            payload = get_worldbook_payload(name, card_id)
+        except FileNotFoundError:
+            self.json({"ok": False, "error": "worldbook not found"}, code=404)
+            return
+        entries = list(payload.get("entries") or [])
+        if from_index < 0 or from_index >= len(entries) or to_index < 0 or to_index >= len(entries):
+            self.json({"ok": False, "error": "index out of range"}, code=400)
+            return
+        entry = entries.pop(from_index)
+        entries.insert(to_index, entry)
+        save_worldbook_entries(name, entries, card_id)
+        rebuild_context_snapshot()
+        self.json({"ok": True, "count": len(entries)})
+
     def handle_cards_import(self) -> None:
         try:
             files = self.read_multipart_files("file")
@@ -808,6 +1064,206 @@ class Handler(SimpleHTTPRequestHandler):
             else:
                 CURRENT_CARD_FILE.unlink(missing_ok=True)
         self.json({"ok": True, "deleted": card_id, "current": next_card, "cards": list_cards()})
+
+    def handle_history(self) -> None:
+        cards = []
+        for card_id in list_available_card_ids():
+            try:
+                payload = get_card_payload(card_id)
+                chat_path = get_chat_log_path(card_id)
+                entries = safe_read_json(chat_path, [])
+                cards.append({
+                    "id": card_id,
+                    "name": payload["fields"].get("name") or card_id,
+                    "messages": len(entries) if isinstance(entries, list) else 0,
+                    "updatedAt": mtime_iso(chat_path),
+                    "entries": entries if isinstance(entries, list) else [],
+                })
+            except Exception as exc:
+                cards.append({"id": card_id, "name": card_id, "error": str(exc), "messages": 0, "entries": []})
+        self.json({"ok": True, "cards": cards})
+
+    def handle_regex_list(self) -> None:
+        if not REGEX_DIR.exists():
+            self.json({"ok": True, "files": []})
+            return
+        files = []
+        for path in sorted(REGEX_DIR.glob("*.json")):
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                entries = data if isinstance(data, list) else []
+            except Exception:
+                entries = []
+            files.append({
+                "name": path.name,
+                "entries": len(entries),
+                "size": path.stat().st_size,
+                "mtime": mtime_iso(path),
+            })
+        self.json({"ok": True, "files": files})
+
+    def handle_regex_import(self) -> None:
+        try:
+            files = self.read_multipart_files("file")
+        except Exception as exc:
+            self.json({"ok": False, "error": f"upload parse failed: {exc}"}, code=400)
+            return
+        if not files:
+            self.json({"ok": False, "error": "no files uploaded"}, code=400)
+            return
+        imported = []
+        for filename, data in files:
+            if not data:
+                continue
+            if not filename.lower().endswith(".json"):
+                continue
+            safe_name = re.sub(r'[\\/:*?"<>|]', "_", filename)
+            target = REGEX_DIR / safe_name
+            if target.exists():
+                base = Path(safe_name).stem
+                ext = Path(safe_name).suffix
+                target = REGEX_DIR / f"{base}_{int(datetime.now().timestamp())}{ext}"
+            try:
+                target.write_bytes(data)
+                parsed = json.loads(data.decode("utf-8", errors="replace"))
+                count = len(parsed) if isinstance(parsed, list) else 0
+                imported.append({
+                    "name": target.name,
+                    "entries": count,
+                    "source": filename,
+                })
+            except Exception as exc:
+                imported.append({"name": safe_name, "error": str(exc)})
+        if not imported:
+            self.json({"ok": False, "error": "no valid json files imported"}, code=400)
+            return
+        self.json({"ok": True, "imported": imported})
+
+    def handle_regex_delete(self, data: dict) -> None:
+        name = str(data.get("name", "")).strip()
+        if not name:
+            self.json({"ok": False, "error": "name required"}, code=400)
+            return
+        target = (REGEX_DIR / name).resolve()
+        if not target.exists() or not str(target).startswith(str(REGEX_DIR.resolve())):
+            self.json({"ok": False, "error": "file not found"}, code=404)
+            return
+        try:
+            target.unlink()
+        except Exception as exc:
+            self.json({"ok": False, "error": str(exc)}, code=500)
+            return
+        self.json({"ok": True, "deleted": name})
+
+    def handle_regex_file(self) -> None:
+        from urllib.parse import parse_qs
+        from pathlib import Path
+        params = parse_qs(urlparse(self.path).query)
+        name = (params.get("name", [""])[0] or "").strip()
+        if not name:
+            self.json({"ok": False, "error": "name required"}, code=400)
+            return
+        target = (REGEX_DIR / name).resolve()
+        if not target.exists() or not str(target).startswith(str(REGEX_DIR.resolve())):
+            self.json({"ok": False, "error": "not found"}, code=404)
+            return
+        try:
+            body = target.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as exc:
+            self.json({"ok": False, "error": str(exc)}, code=500)
+
+    def handle_regex_rules(self) -> None:
+        if not REGEX_DIR.exists():
+            self.json({"ok": True, "files": [], "rules": []})
+            return
+        files = []
+        rules = []
+        for path in sorted(REGEX_DIR.glob("*.json")):
+            file_entry = {
+                "name": path.name,
+                "size": path.stat().st_size,
+                "mtime": mtime_iso(path),
+            }
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                entries = data if isinstance(data, list) else []
+                file_entry["entries"] = len(entries)
+                for idx, entry in enumerate(entries):
+                    rule = dict(entry) if isinstance(entry, dict) else {"scriptName": str(entry)}
+                    rule["_file"] = path.name
+                    rule["_index"] = idx
+                    rules.append(rule)
+            except Exception:
+                file_entry["entries"] = 0
+            files.append(file_entry)
+        self.json({"ok": True, "files": files, "rules": rules})
+
+    def handle_regex_rule_toggle(self, data: dict) -> None:
+        name = str(data.get("name", "")).strip()
+        index = int(data.get("index", -1))
+        enabled = bool(data.get("enabled", False))
+        if not name or index < 0:
+            self.json({"ok": False, "error": "name and index required"}, code=400)
+            return
+        target = (REGEX_DIR / name).resolve()
+        if not target.exists() or not str(target).startswith(str(REGEX_DIR.resolve())):
+            self.json({"ok": False, "error": "file not found"}, code=404)
+            return
+        try:
+            parsed = json.loads(target.read_text(encoding="utf-8"))
+            if not isinstance(parsed, list) or index >= len(parsed):
+                self.json({"ok": False, "error": "rule not found"}, code=404)
+                return
+            parsed[index]["disabled"] = not enabled
+            atomic_write_json(target, parsed)
+            self.json({"ok": True, "rule": parsed[index]})
+        except Exception as exc:
+            self.json({"ok": False, "error": str(exc)}, code=500)
+
+    def handle_regex_save(self, data: dict) -> None:
+        name = str(data.get("name", "")).strip()
+        content = data.get("content")
+        if not name or content is None:
+            self.json({"ok": False, "error": "name and content required"}, code=400)
+            return
+        if not isinstance(content, list):
+            self.json({"ok": False, "error": "content must be a list"}, code=400)
+            return
+        target = (REGEX_DIR / name).resolve()
+        if not target.exists() or not str(target).startswith(str(REGEX_DIR.resolve())):
+            self.json({"ok": False, "error": "file not found"}, code=404)
+            return
+        try:
+            atomic_write_json(target, content)
+            self.json({"ok": True, "name": name, "entries": len(content)})
+        except Exception as exc:
+            self.json({"ok": False, "error": str(exc)}, code=500)
+
+    def handle_regex_rule_delete(self, data: dict) -> None:
+        name = str(data.get("name", "")).strip()
+        index = int(data.get("index", -1))
+        if not name or index < 0:
+            self.json({"ok": False, "error": "name and index required"}, code=400)
+            return
+        target = (REGEX_DIR / name).resolve()
+        if not target.exists() or not str(target).startswith(str(REGEX_DIR.resolve())):
+            self.json({"ok": False, "error": "file not found"}, code=404)
+            return
+        try:
+            parsed = json.loads(target.read_text(encoding="utf-8"))
+            if not isinstance(parsed, list) or index >= len(parsed):
+                self.json({"ok": False, "error": "rule not found"}, code=404)
+                return
+            parsed.pop(index)
+            atomic_write_json(target, parsed)
+            self.json({"ok": True, "name": name, "entries": len(parsed)})
+        except Exception as exc:
+            self.json({"ok": False, "error": str(exc)}, code=500)
 
     def read_json_body(self) -> dict:
         length = int(self.headers.get("Content-Length", "0"))
@@ -921,6 +1377,7 @@ class Handler(SimpleHTTPRequestHandler):
 def init_runtime() -> None:
     WEB_ROOT.mkdir(exist_ok=True)
     CARDS_DIR.mkdir(exist_ok=True)
+    REGEX_DIR.mkdir(exist_ok=True)
     if not SETTINGS_FILE.exists():
         atomic_write_json(SETTINGS_FILE, DEFAULT_SETTINGS)
     if not IMAGE_JOBS_FILE.exists():
@@ -1222,6 +1679,15 @@ def read_session_state(card_id: str | None = None) -> dict:
 
 def now() -> str:
     return datetime.now().isoformat(timespec="seconds")
+
+
+def _count_tokens(text: str) -> int:
+    try:
+        import tiktoken
+        encoder = tiktoken.get_encoding("cl100k_base")
+        return len(encoder.encode(text))
+    except Exception:
+        return max(1, len(text) // 2)
 
 
 def find_port(start: int) -> int:

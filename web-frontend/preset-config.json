@@ -1,5 +1,5 @@
 {
-  "activePresetId": "TaverndeepSeek_GrayWill-0.45.3",
+  "activePresetId": "【LENI】1.5",
   "presets": {
     "TaverndeepSeek_GrayWill-0.45.3": {
       "source": "D:\\codebaby\\Opencode--AIRP-SillyTavern\\presets\\TaverndeepSeek_GrayWill-0.45.3.json",
@@ -3206,19 +3206,19 @@
           "order": 100
         },
         "【LENI】1.5_47": {
-          "enabled": true,
+          "enabled": false,
           "order": 100
         },
         "【LENI】1.5_48": {
-          "enabled": true,
+          "enabled": false,
           "order": 100
         },
         "【LENI】1.5_49": {
-          "enabled": true,
+          "enabled": false,
           "order": 100
         },
         "【LENI】1.5_50": {
-          "enabled": true,
+          "enabled": false,
           "order": 100
         },
         "【LENI】1.5_51": {
@@ -3298,7 +3298,7 @@
           "order": 100
         },
         "【LENI】1.5_70": {
-          "enabled": false,
+          "enabled": true,
           "order": 100
         },
         "【LENI】1.5_71": {
@@ -3434,7 +3434,7 @@
           "order": 100
         },
         "【LENI】1.5_104": {
-          "enabled": false,
+          "enabled": true,
           "order": 100
         },
         "【LENI】1.5_105": {
@@ -3474,7 +3474,7 @@
           "order": 100
         },
         "【LENI】1.5_114": {
-          "enabled": false,
+          "enabled": true,
           "order": 100
         },
         "【LENI】1.5_115": {

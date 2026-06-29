@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>正则管理 - OpenCode AIRP</title>
+<style>
+:root{
+  --bg:#16110e;--panel:#1f1915;--panel-2:#2a221c;--text:#e8dcc8;--muted:#a89880;
+  --line:#3d3228;--gold:#d4a574;--gold-2:#c49a6c;--brand:#e8b86d;--brand-2:#3d2e1a;
+  --danger:#c45c5c;--shadow:0 12px 36px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:14px/1.55 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+button{touch-action:manipulation;cursor:pointer}
+.top{
+  display:flex;align-items:center;gap:12px;padding:14px 20px;
+  background:linear-gradient(180deg, rgba(212,165,116,.08), transparent);
+  border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;backdrop-filter:blur(8px);
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg, var(--gold), var(--gold-2));display:flex;align-items:center;justify-content:center;color:#1a1614;font-weight:900;font-size:14px}
+.brand-text{font-weight:700;font-size:15px;color:var(--gold);letter-spacing:.3px}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.spacer{flex:1}
+.icon-btn{
+  width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);
+  display:inline-flex;align-items:center;justify-content:center;text-decoration:none;transition:all .15s;font-size:13px;
+}
+.icon-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--panel-2)}
+.sub-nav{
+  display:flex;gap:6px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap;
+}
+.sub-tab{
+  border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:5px 12px;
+  font-size:12px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+}
+.sub-tab:hover{border-color:var(--gold);color:var(--gold)}
+.sub-tab.active{background:var(--brand-2);border-color:var(--gold);color:var(--gold);font-weight:600}
+.btn{
+  border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:6px 12px;
+  font-size:12px;display:inline-flex;align-items:center;gap:6px;transition:all .15s;
+}
+.btn:hover{border-color:var(--gold);color:var(--gold);background:var(--panel-2)}
+.btn-primary{
+  border:none;background:linear-gradient(135deg, var(--gold), var(--gold-2));color:#1a1614;border-radius:8px;
+  padding:7px 14px;font-size:12px;font-weight:600;
+}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-danger{border:1px solid var(--danger);background:transparent;color:var(--danger);border-radius:6px;padding:4px 10px;font-size:11px}
+.btn-danger:hover{background:rgba(196,92,92,.1)}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.page-title{font-size:22px;font-weight:800;color:var(--gold);letter-spacing:.3px}
+.rule-list{display:flex;flex-direction:column;gap:8px}
+.rule-item{
+  display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:10px 12px;transition:all .15s;
+}
+.rule-item:hover{border-color:var(--gold)}
+.rule-info{flex:1;min-width:0}
+.rule-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rule-meta{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rule-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.toggle{
+  width:36px;height:20px;border-radius:999px;border:1px solid var(--line);background:var(--panel-2);
+  position:relative;cursor:pointer;transition:all .15s;
+}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:all .15s}
+.toggle.on{background:rgba(212,165,116,.2);border-color:var(--gold)}
+.toggle.on::after{left:18px;background:var(--gold)}
+.icon-btn-sm{
+  width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--text);
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .15s;text-decoration:none;
+}
+.icon-btn-sm:hover{border-color:var(--gold);color:var(--gold);background:var(--panel-2)}
+.icon-btn-sm.danger:hover{border-color:var(--danger);color:var(--danger);background:rgba(196,92,92,.08)}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.empty-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px}
+.empty-desc{font-size:13px}
+.modal-backdrop{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);width:min(520px,92vw);max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
+.modal-head{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg, rgba(212,165,116,.06), transparent)}
+.modal-title{font-size:16px;font-weight:700;color:var(--gold)}
+.modal-close{margin-left:auto;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+.modal-close:hover{border-color:var(--gold);color:var(--gold)}
+.modal-body{padding:18px;overflow-y:auto}
+.upload-zone{border:2px dashed var(--line);border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--panel-2)}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--gold);background:rgba(212,165,116,.05)}
+.upload-zone input{display:none}
+.upload-icon{font-size:36px;color:var(--muted);margin-bottom:8px}
+.upload-text{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.upload-hint{font-size:12px;color:var(--muted)}
+.upload-preview{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.upload-thumb{width:60px;height:80px;border-radius:6px;border:1px solid var(--line);overflow:hidden;position:relative}
+.upload-thumb img{width:100%;height:100%;object-fit:cover}
+.upload-thumb .remove{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center}
+.modal-foot{display:flex;gap:10px;justify-content:flex-end;padding:12px 18px 16px;border-top:1px solid var(--line)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;background:var(--panel-2);color:var(--gold);border:1px solid var(--gold);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;box-shadow:var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;max-width:90vw}
+.toast.show{opacity:1;pointer-events:auto}
+.toast button{border:1px solid var(--gold);background:var(--panel);color:var(--gold);border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;white-space:nowrap}
+.toast button:hover{border-color:var(--gold-2);background:var(--brand-2)}
+.badge{font-size:10px;padding:2px 8px;border-radius:4px;background:var(--brand-2);color:var(--gold);border:1px solid rgba(212,165,116,.2);white-space:nowrap}
+.stat{font-size:11px;color:var(--muted);white-space:nowrap}
+.loading{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.spinner{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand">
+    <div class="brand-icon">AIRP</div>
+    <div>
+      <div class="brand-text">OpenCode AIRP SillyTavern</div>
+      <div class="brand-sub">正则管理</div>
+    </div>
+  </div>
+  <span class="spacer"></span>
+  <a class="icon-btn" href="/index.html" title="返回对话">&#8592;</a>
+</div>
+<div class="sub-nav">
+  <a href="/cards.html" class="sub-tab">&#128100; 角色卡</a>
+  <a href="/worldbooks.html" class="sub-tab">&#127758; 世界书</a>
+  <a href="/history.html" class="sub-tab">&#128197; 对话历史</a>
+  <a href="/presets.html" class="sub-tab">&#128396; 预设</a>
+  <a href="/regex.html" class="sub-tab active">&#10070; 正则</a>
+  <a href="/builtin-cards.html" class="sub-tab">&#128188; 内置角色卡</a>
+  <a href="/builtin-presets.html" class="sub-tab">&#128295; 内置预设</a>
+</div>
+<div class="container">
+  <div class="toolbar">
+    <div class="page-title">正则</div>
+    <span class="spacer"></span>
+    <button class="btn-primary" style="font-size:11px;padding:6px 12px" onclick="openRegexImportModal()">+ 导入正则</button>
+    <button class="btn" style="font-size:11px;padding:4px 10px" onclick="refreshRegex()">&#8635; 刷新</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <span style="font-size:12px;color:var(--muted)" id="regexCount">共 0 条</span>
+  </div>
+  <div id="regexList" class="rule-list">
+    <div class="loading"><div class="spinner"></div>加载中...</div>
+  </div>
+</div>
+<div class="modal-backdrop" id="regexImportBackdrop" onclick="closeRegexImportModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head"><div class="modal-title">导入正则</div><button class="modal-close" onclick="closeRegexImportModal()">&times;</button></div>
+    <div class="modal-body">
+      <div class="upload-zone" id="regexUploadZone" onclick="document.getElementById('regexFileInput').click()">
+        <input type="file" id="regexFileInput" accept=".json" multiple onchange="handleRegexFileSelect(event)">
+        <div class="upload-icon">&#8682;</div>
+        <div class="upload-text">点击选择或拖拽文件到此处</div>
+        <div class="upload-hint">支持选择多个 .json 格式的正则文件</div>
+        <div class="upload-preview" id="regexUploadPreview"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeRegexImportModal()">取消</button>
+      <button class="btn-primary" id="regexImportBtn" onclick="startRegexImport()" disabled>开始导入</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const $ = id => document.getElementById(id);
+let regexFiles = [];
+let regexRules = [];
+function toast(text, buttons) {
+  const el = $('toast'); el.innerHTML = text;
+  if (buttons && buttons.length) {
+    el.innerHTML += ' ' + buttons.map(b => `<button data-action="${escAttr(b.action)}">${esc(b.label)}</button>`).join(' ');
+    el.querySelectorAll('button').forEach(btn => { btn.onclick = () => { el.classList.remove('show'); }; });
+  }
+  el.classList.add('show');
+  if (!buttons) setTimeout(() => el.classList.remove('show'), 2500);
+}
+function esc(s) { return String(s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) }
+function escAttr(s) { return String(s || '').replace(/['\\]/g, '\\$&').replace(/\n/g, ' ') }
+async function api(path, opts) {
+  const isFormData = typeof FormData !== 'undefined' && opts && opts.body instanceof FormData;
+  const headers = isFormData ? {} : { 'Content-Type': 'application/json' };
+  const res = await fetch(path, Object.assign({ headers }, opts || {}));
+  const data = await res.json();
+  if (!data.ok && data.error) throw new Error(data.error);
+  return data;
+}
+function openRegexImportModal() {
+  regexFiles = []; $('regexUploadPreview').innerHTML = ''; $('regexImportBtn').disabled = true;
+  $('regexImportBackdrop').classList.add('open'); $('regexFileInput').value = '';
+}
+function closeRegexImportModal() { $('regexImportBackdrop').classList.remove('open'); }
+function handleRegexFileSelect(event) {
+  const files = Array.from(event.target.files || []);
+  regexFiles = files.filter(f => f.name.toLowerCase().endsWith('.json'));
+  updateRegexUploadPreview(); $('regexImportBtn').disabled = regexFiles.length === 0;
+}
+function updateRegexUploadPreview() {
+  const container = $('regexUploadPreview');
+  container.innerHTML = regexFiles.map((f, i) =>
+    `<div class="upload-thumb"><img src="${URL.createObjectURL(f)}"><button class="remove" onclick="removeRegexFile(${i})">&times;</button></div>`
+  ).join('');
+}
+function removeRegexFile(index) { regexFiles.splice(index, 1); updateRegexUploadPreview(); $('regexImportBtn').disabled = regexFiles.length === 0; }
+async function startRegexImport() {
+  if (!regexFiles.length) return;
+  const btn = $('regexImportBtn'); btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>导入中...';
+  try {
+    const form = new FormData(); regexFiles.forEach(f => form.append('file', f));
+    const res = await fetch('/api/regex/import', { method: 'POST', body: form });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '导入失败');
+    toast(`成功导入 ${data.imported.length} 个正则文件`);
+    closeRegexImportModal(); await refreshRegex();
+  } catch (e) { toast('导入失败: ' + e.message); btn.disabled = false; btn.innerHTML = '开始导入'; }
+}
+async function refreshRegex() {
+  const container = $('regexList');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div>加载中...</div>';
+  try {
+    const data = await api('/api/regex/rules');
+    regexRules = data.rules || [];
+    renderRegexRules(regexRules);
+    $('regexCount').textContent = `共 ${regexRules.length} 条`;
+  } catch (e) {
+    container.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-desc">加载失败: ${esc(e.message)}</div></div>`;
+  }
+}
+function renderRegexRules(list) {
+  const container = $('regexList');
+  if (!list.length) {
+    container.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">&#10070;</div><div class="empty-title">暂无正则规则</div><div class="empty-desc">点击上方"导入正则"按钮导入你的第一个正则文件</div></div>`;
+    return;
+  }
+  container.innerHTML = `<div class="rule-list">${list.map((rule, idx) => {
+    const disabled = !!rule.disabled;
+    const fileName = esc(rule._file || '');
+    const name = esc(rule.scriptName || `规则 ${idx + 1}`);
+    const find = esc((rule.findRegex || '').slice(0, 120));
+    return `<div class="rule-item">
+      <div class="rule-info">
+        <div class="rule-name" title="${name}">${name}</div>
+        <div class="rule-meta" title="${fileName}">${find} · ${fileName}</div>
+      </div>
+      <div class="rule-actions">
+        <div class="toggle ${disabled ? '' : 'on'}" onclick="toggleRegexRule('${fileName}', ${rule._index}, ${disabled})" title="${disabled ? '已禁用' : '已启用'}"></div>
+        <button class="icon-btn-sm" onclick="editRegexRule('${fileName}', ${rule._index})" title="编辑">&#9998;</button>
+        <button class="icon-btn-sm danger" onclick="deleteRegexRule('${fileName}', ${rule._index}, '${escAttr(name)}')" title="删除">&#128465;</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+async function toggleRegexRule(name, index, disabled) {
+  try {
+    const data = await api('/api/regex/rule/toggle', { method: 'POST', body: JSON.stringify({ name, index, enabled: disabled }) });
+    toast(data.rule && data.rule.disabled ? '已禁用' : '已启用');
+    await refreshRegex();
+  } catch (e) { toast('切换失败: ' + e.message); }
+}
+function editRegexRule(name, index) {
+  const rule = regexRules.find(r => r._file === name && r._index === index);
+  if (!rule) return;
+  const newScriptName = prompt('规则名称', rule.scriptName || '');
+  if (newScriptName === null) return;
+  const newFind = prompt('findRegex', rule.findRegex || '');
+  if (newFind === null) return;
+  const newReplace = prompt('replaceString', rule.replaceString || '');
+  if (newReplace === null) return;
+  saveRegexRule(name, index, { ...rule, scriptName: newScriptName, findRegex: newFind, replaceString: newReplace });
+}
+async function saveRegexRule(name, index, updatedRule) {
+  try {
+    const data = await api('/api/regex/rules');
+    const fileEntry = (data.files || []).find(f => f.name === name);
+    if (!fileEntry) return;
+    const res = await fetch(`/api/regex/file?name=${encodeURIComponent(name)}`);
+    const content = await res.json();
+    if (!Array.isArray(content)) return;
+    content[index] = { ...content[index], ...updatedRule };
+    await api('/api/regex/save', { method: 'POST', body: JSON.stringify({ name, content }) });
+    toast('已保存'); await refreshRegex();
+  } catch (e) { toast('保存失败: ' + e.message); }
+}
+async function deleteRegexRule(name, index, displayName) {
+  if (!confirm(`确定删除规则「${displayName}」吗？\n此操作不可恢复。`)) return;
+  try {
+    const data = await api('/api/regex/rules');
+    const res = await fetch(`/api/regex/file?name=${encodeURIComponent(name)}`);
+    const content = await res.json();
+    if (!Array.isArray(content)) return;
+    content.splice(index, 1);
+    await api('/api/regex/save', { method: 'POST', body: JSON.stringify({ name, content }) });
+    toast(`已删除「${displayName}」`); await refreshRegex();
+  } catch (e) { toast('删除失败: ' + e.message); }
+}
+const regexUploadZone = $('regexUploadZone');
+if (regexUploadZone) {
+  regexUploadZone.addEventListener('dragover', e => { e.preventDefault(); regexUploadZone.classList.add('dragover'); });
+  regexUploadZone.addEventListener('dragleave', () => { regexUploadZone.classList.remove('dragover'); });
+  regexUploadZone.addEventListener('drop', e => {
+    e.preventDefault(); regexUploadZone.classList.remove('dragover');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.json'));
+    if (files.length) { regexFiles = files; updateRegexUploadPreview(); $('regexImportBtn').disabled = false; }
+  });
+}
+refreshRegex();
+</script>
+</body>
+</html>

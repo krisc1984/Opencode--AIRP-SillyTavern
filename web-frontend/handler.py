@@ -407,6 +407,16 @@ def extract_options(text: str) -> list[str]:
                 clean = clean[1:].strip()
             if clean and 6 <= len(clean) <= 80:
                 options.append(clean)
+    # 其次读取 <选项> 块（中文选项标签）
+    if not options:
+        option_block = re.search(r"<选项>([\s\S]*?)<!--选项-->", text or "", re.IGNORECASE)
+        if option_block:
+            block_content = option_block.group(1)
+            for m in re.finditer(r"<(\d+)>([\s\S]*?)<!--\1-->", block_content):
+                content = m.group(2).strip()
+                clean = re.sub(r"<[^>]+>", "", content).strip()
+                if clean and 4 <= len(clean) <= 120:
+                    options.append(clean)
     # 其次读取 <xx> 块（编号行动选项）
     if not options:
         xx_block = re.search(r"<xx>([\s\S]*?)</xx>", text or "", re.IGNORECASE)
